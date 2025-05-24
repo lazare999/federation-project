@@ -1,0 +1,95 @@
+.container {
+  color: white;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  z-index: 1000;
+  background-color: transparent;
+  transition: background-color 0.4s ease, transform 0.4s ease;
+}
+
+.nonHomeHeader {
+  position: unset;
+}
+
+.scrolled {
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  color: black;
+}
+
+.hidden {
+  transform: translateY(-100%);
+}
+
+.navContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 3rem;
+  font-size: 2rem;
+}
+
+.burgerButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 3.5rem;
+  z-index: 1100;
+  color: white; /* default color */
+  transition: color 0.3s ease;
+}
+
+.burgerScrolled {
+  color: black; /* change color when header is scrolled */
+}
+/* For the image animation */
+.logoImage {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+}
+
+.imageHidden {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.imageVisible {
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+@media (max-width: 1024px) {
+  .navContainer {
+  font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .navContainer > :nth-child(1),
+  .navContainer > :nth-child(2){
+  display: none;
+  }
+}
+
+@media (max-width:  768px) {
+  .container {
+    padding: 0.5rem 2rem
+  }
+  .logoImage {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+@media (max-width:  380px) {
+  .logoImage {
+    width: 80px;
+    height: 80px;
+  }
+}

@@ -1,0 +1,99 @@
+.imgContainer {
+  height: 100vh;
+  background-image: url('/home-page-background/home-page-background.jpg');
+  background-size: cover;
+  position: relative;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.imgContainer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1;
+}
+
+.imgContainer > * {
+  position: relative;
+  z-index: 2;
+}
+
+.logoImage {
+  width: 300px;
+  height: 300px;
+  object-fit: contain;
+}
+
+/* Title centered */
+.title {
+  font-size: 3rem;
+  color: white;
+  margin-bottom: auto;
+  margin-top: auto;
+}
+
+/* Bottom scroll section */
+.bottomScrollSection {
+  position: absolute;
+  bottom: 3%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.arrow {
+  font-size: 2rem;
+  color: white;
+  display: block;
+  transition: transform 0.3s ease-in-out;
+}
+
+.scrollText {
+  font-size: 1rem;
+  color: white;
+  margin-top: 0.2rem;
+}
+
+.bottomScrollSection:hover .arrow {
+  transform: translateY(5px);
+}
+
+/* Content after scroll */
+.content {
+  padding: 2rem;
+  background-color: #a32f2f;
+  min-height: 100vh;
+  text-align: center;
+}
+
+
+
+  @media (max-width: 1245px) {
+  .imgContainer {
+     background-position: center;
+  }
+}
+@media (max-width: 768px) {
+  .imgContainer {
+    height: 95vh;
+  }
+  .logoImage {
+    width: 200px;
+    height: 200px;
+      display: flex;
+  justify-content: center;
+  align-items: center;
+  }
+  .bottomScrollSection {
+ 
+  bottom: 14%;
+
+}
+}

@@ -1,0 +1,49 @@
+/* styles/events/event-filter/eventFilter.module.css */
+
+.container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  /* gap: 8px; */
+  margin-bottom: 2rem;
+}
+
+.select {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border: 1px solid #000;
+  background-color: transparent;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  width: 220px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.input {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border: 1px solid #000;
+  background-color: transparent;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  width: 220px;
+}
+
+.button {
+  background-color: #000;
+  color: #fff;
+  padding: 0.6rem 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: #333;
+}
