@@ -47,7 +47,7 @@ export default function Events() {
         onFilterClick={() => setSelectedCategory(pendingCategory)}
       />
       {filteredEvents.length === 0 ? (
-        <p className={classes.empty}>No events found.</p>
+        <p className={classes.empty}>Loading...</p>
       ) : (
         <EventCard events={filteredEvents} />
       )}

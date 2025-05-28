@@ -1,5 +1,6 @@
-import Header from '@/components/header/header';
 import './globals.css';
+import Header from '@/components/header/header';
+import I18nProvider from '@/components/I18nProvider/I18nProvider';
 
 export const metadata = {
   title: 'Create Next App',
@@ -10,10 +11,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <div>
+        {/* Wrap UI in client-side i18n provider */}
+        <I18nProvider>
           <Header />
           <main>{children}</main>
-        </div>
+        </I18nProvider>
       </body>
     </html>
   );

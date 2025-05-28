@@ -1,0 +1,13 @@
+{
+  "home": {
+    "scrollText": "SCROLL",
+    "title": "Lazare Osiashvili",
+    "logoAlt": "federation logo"
+  },
+  "header": {
+    "contact": "contact",
+    "languageEnglish": "EN",
+    "languageGeorgian": "GEO",
+    "openMenu": "Open menu"
+  }
+}

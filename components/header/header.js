@@ -3,29 +3,34 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
-import logo from '@/public/logos/federation-logo-black.png';
+import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+
 import Sidebar from '../sidebar/sidebar';
+import logo from '@/public/logos/federation-logo-black.png';
+
 import classes from '@/styles/header/header.module.css';
 
 export default function Header() {
+  const { t, i18n } = useTranslation('common'); // use common namespace
   const pathname = usePathname();
   const isHomePage = pathname === '/';
 
-  const [scrolled, setScrolled] = useState(!isHomePage); // default state based on route
+  const [scrolled, setScrolled] = useState(!isHomePage);
   const [hidden, setHidden] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Reset scroll state when route changes
   useEffect(() => {
-    setScrolled(!isHomePage); // reset scroll based on new route
-  }, [pathname]);
+    setScrolled(!isHomePage);
+  }, [pathname, isHomePage]);
 
   useEffect(() => {
     if (!isHomePage) return;
 
     const handleScroll = () => {
       const currentY = window.scrollY;
+
       setScrolled(currentY > window.innerHeight * 0.9);
 
       if (currentY > window.innerHeight) {
@@ -41,35 +46,54 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY, isHomePage]);
 
-  const headerClasses = `${classes.container} ${scrolled ? classes.scrolled : ''} ${hidden ? classes.hidden : ''} ${!isHomePage ? classes.nonHomeHeader : ''}`;
+  const headerClasses = `${classes.container} ${scrolled ? classes.scrolled : ''} ${
+    hidden ? classes.hidden : ''
+  } ${!isHomePage ? classes.nonHomeHeader : ''}`;
 
   const imageClasses = `${scrolled ? classes.imageVisible : classes.imageHidden}`;
 
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
+
   return (
     <>
-      <div className={headerClasses}>
-       <Image
-  src={logo}
-  alt="Logo"
-  width={150}
-  height={150}
-  className={`${imageClasses} ${classes.logoImage}`}
-  priority
-/>
+      <header className={headerClasses}>
+        <Link href="/" passHref>
+          <Image
+            src={logo}
+            alt={t('header.logoAlt')}
+            width={150}
+            height={150}
+            className={`${imageClasses} ${classes.logoImage}`}
+            priority
+          />
+        </Link>
+
         <div className={classes.navContainer}>
-          <h2>contact</h2>
-          <h5>EN/GEO</h5>
+          <h2>{t('header.contact')}</h2>
+
+          <div className={classes.languageSwitcher}>
+            <button onClick={() => changeLanguage('en')} aria-label={t('header.languageEnglish')}>
+              {t('header.languageEnglish')}
+            </button>
+            <span>/</span>
+            <button onClick={() => changeLanguage('ka')} aria-label={t('header.languageGeorgian')}>
+              {t('header.languageGeorgian')}
+            </button>
+          </div>
+
           {!isMenuOpen && (
             <button
               onClick={() => setIsMenuOpen(true)}
               className={`${classes.burgerButton} ${scrolled ? classes.burgerScrolled : ''}`}
-              aria-label="Open menu"
+              aria-label={t('header.openMenu')}
             >
               ☰
             </button>
           )}
         </div>
-      </div>
+      </header>
 
       <Sidebar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
     </>
