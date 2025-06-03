@@ -74,13 +74,21 @@ export default function Header() {
           <h2>{t('header.contact')}</h2>
 
           <div className={classes.languageSwitcher}>
-            <button onClick={() => changeLanguage('en')} aria-label={t('header.languageEnglish')}>
-              {t('header.languageEnglish')}
-            </button>
-            <span>/</span>
-            <button onClick={() => changeLanguage('ka')} aria-label={t('header.languageGeorgian')}>
-              {t('header.languageGeorgian')}
-            </button>
+             <h2
+    onClick={() => changeLanguage('en')}
+    className={i18n.language === 'en' ? classes.activeLang : ''}
+    style={{ cursor: 'pointer' }}
+  >
+    {t('header.languageEnglish')}
+  </h2>
+  <span>/</span>
+  <h2
+    onClick={() => changeLanguage('ka')}
+    className={i18n.language === 'ka' ? classes.activeLang : ''}
+    style={{ cursor: 'pointer' }}
+  >
+    {t('header.languageGeorgian')}
+  </h2>
           </div>
 
           {!isMenuOpen && (

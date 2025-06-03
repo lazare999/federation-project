@@ -1,0 +1,192 @@
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+  gap: 24px;
+  padding: 40px 24px;
+}
+
+.card {
+  position: relative;
+  height: 400px;
+  max-width: 80vh;
+  background-size: cover;
+  background-position: center;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: scale(1.02);
+  cursor: pointer;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  transition: background-color 0.3s ease;
+}
+
+.card:hover .overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+.name {
+  position: absolute;
+     top: 185px;
+  left: 16px;
+  z-index: 2;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card:hover .name {
+  opacity: 1;
+}
+.infoBox {
+    width: fit-content;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  color: #4d4d4d;
+  padding: 0.5rem;
+  margin: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  line-height: 1.2;
+}
+
+.card:hover .infoBox {
+  opacity: 1;
+}
+
+.name {
+  font-size: 40px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.info {
+  font-size: 24px;
+  margin: 2px 0;
+}
+
+@media (max-width:  2330px) {
+.gridContainer {
+  grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+
+}
+}
+
+@media (max-width:  1750px) {
+.gridContainer {
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+
+}
+}
+
+
+
+@media (max-width:  1300px) {
+.gridContainer {
+  grid-template-columns: repeat(auto-fit, minmax(500px, 0fr));
+  justify-content: space-evenly;
+
+}
+.card {
+  height: 300px;
+
+}
+
+
+
+
+.name {
+  top: 135px;
+  font-size: 30px;
+}
+
+.info {
+  font-size: 17px;
+}
+}
+
+@media (max-width:  450px) {
+.gridContainer {
+  grid-template-columns: repeat(auto-fit, minmax(350px, 0fr));
+  justify-content: space-evenly;
+
+}
+.card {
+  height: 200px;
+
+}
+
+
+
+
+.name {
+  top: 59px;
+  font-size: 25px;
+ 
+}
+
+.info {
+  font-size: 14px;
+}
+}
+
+@media (max-width:  375px) {
+.gridContainer {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 0fr));
+  justify-content: space-evenly;
+
+}
+.card {
+  height: 200px;
+
+}
+
+
+
+
+.name {
+         top: 59px;
+        font-size: 25px;
+}
+
+.info {
+ font-size: 14px;
+}
+}
+
+
+@media (max-width:  375px) {
+.gridContainer {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 0fr));
+  justify-content: space-evenly;
+
+}
+.card {
+  height: 170px;
+
+}
+
+
+
+
+.name {
+         top: 45px;
+        font-size: 25px;
+}
+
+.info {
+ font-size: 11px;
+}
+}

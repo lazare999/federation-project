@@ -1,0 +1,87 @@
+.container {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem 2rem;
+}
+
+.toggleButton {
+  background-color: black;
+  color: white;
+  border: 1px solid white;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.toggleButton:hover {
+  background-color: #222;
+}
+
+.filterContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: black;
+  padding: 1rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.closeButton {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.closeButton:hover {
+  color: #e0e0e0;
+}
+
+.label {
+  color: white;
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+}
+
+.select,
+.input {
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  min-width: 200px;
+}
+
+.select option {
+  background-color: black;
+  color: white;
+}
+
+.orAnd {
+  color: white;
+  font-size: 1.2rem;
+}
+
+.button {
+  background-color: white;
+  color: black;
+  padding: 0.5rem 1.5rem;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.button:hover {
+  background-color: #e0e0e0;
+}
