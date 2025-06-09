@@ -1,5 +1,7 @@
 import classes from '@/styles/events/event-filter/eventFilter.module.css';
 
+const filters = ['All', 'Upcoming', 'Previous'];
+
 export default function EventFilter({
   selectedCategory,
   onCategoryChange,
@@ -12,9 +14,13 @@ export default function EventFilter({
         onChange={(e) => onCategoryChange(e.target.value)}
         className={classes.select}
       >
-        <option value="all">CATEGORY: All</option>
-        <option value="upcoming">CATEGORY: Upcoming</option>
-        <option value="previous">CATEGORY: Previous</option>
+        {filters.map((category) => {
+          return (
+            <option value={category.toLowerCase()} key={category}>
+              CATEGORY: {category}
+            </option>
+          );
+        })}
       </select>
       <button className={classes.button} onClick={onFilterClick}>
         FILTER
