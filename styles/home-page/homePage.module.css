@@ -1,40 +1,50 @@
+.container {
+  width: 100%;
+}
+
+/* Hero section container */
 .imgContainer {
   height: 100vh;
-  background-image: url('/home-page-background/home-page-background.jpg');
-  background-size: cover;
   position: relative;
   z-index: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
 }
 
-.imgContainer::before {
-  content: '';
+/* Background image using Next.js Image */
+.backgroundImage {
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Overlay */
+.overlay {
   position: absolute;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.6);
   z-index: 1;
 }
 
-.imgContainer > * {
+/* Foreground content layer */
+.foreground {
   position: relative;
   z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 }
 
+/* Logo image */
 .logoImage {
-  width: 300px;
-  height: 300px;
+  width: 40%;
+  height: 40%;
   object-fit: contain;
-}
-
-/* Title centered */
-.title {
-  font-size: 3rem;
-  color: white;
-  margin-bottom: auto;
-  margin-top: auto;
 }
 
 /* Bottom scroll section */
@@ -73,27 +83,25 @@
   text-align: center;
 }
 
-
-
-  @media (max-width: 1245px) {
+/* Responsive adjustments */
+@media (max-width: 1245px) {
   .imgContainer {
-     background-position: center;
+    background-position: center;
   }
 }
+
 @media (max-width: 768px) {
   .imgContainer {
     height: 95vh;
   }
-  .logoImage {
-    width: 200px;
-    height: 200px;
-      display: flex;
-  justify-content: center;
-  align-items: center;
-  }
-  .bottomScrollSection {
- 
-  bottom: 14%;
 
-}
+  .logoImage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .bottomScrollSection {
+    bottom: 14%;
+  }
 }

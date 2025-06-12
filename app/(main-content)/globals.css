@@ -17,6 +17,16 @@ body {
   background-color: #f4f4f4;
 }
 
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.contentWrapper {
+  flex: 1;
+}
+
 body {
   /* color: var(--foreground);
   background: var(--background); */

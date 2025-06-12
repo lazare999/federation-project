@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { getEvents } from '@/actions/event-actions/eventActions';
+import { useEffect, useState } from 'react';
+
 import EventCard from '@/components/event/event-card/eventCard';
-import classes from '@/styles/events/event-page/events.module.css';
 import EventFilter from '@/components/event/event-filter/eventFilter';
+
+import Loader from '@/components/loader/loader';
+import classes from '@/styles/events/event-page/events.module.css';
 
 export default function Events() {
   const [events, setEvents] = useState([]);
@@ -47,7 +50,7 @@ export default function Events() {
         onFilterClick={() => setSelectedCategory(pendingCategory)}
       />
       {filteredEvents.length === 0 ? (
-        <p className={classes.empty}>Loading...</p>
+        <Loader />
       ) : (
         <EventCard events={filteredEvents} />
       )}

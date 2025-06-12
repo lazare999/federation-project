@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { getHorses } from '@/actions/horse-action/horseAction';
 import HorseFilter from '@/components/horses/horse-filter/HorseFilter';
 import HorsesList from '@/components/horses/horses-list/HorsesList';
+import { useEffect, useState } from 'react';
+
+import Loader from '@/components/loader/loader';
 
 export default function Horses() {
   const [allHorses, setAllHorses] = useState([]);
@@ -29,13 +31,15 @@ export default function Horses() {
   const handleFilter = ({ category, name }) => {
     const filtered = allHorses.filter((horse) => {
       const matchCategory = category ? horse.category === category : true;
-      const matchName = name ? horse.name.toLowerCase().includes(name.toLowerCase()) : true;
+      const matchName = name
+        ? horse.name.toLowerCase().includes(name.toLowerCase())
+        : true;
       return matchCategory && matchName;
     });
     setFilteredHorses(filtered);
   };
 
-  if (loading) return <p>Loading horses...</p>;
+  if (loading) return <Loader />;
 
   return (
     <div>

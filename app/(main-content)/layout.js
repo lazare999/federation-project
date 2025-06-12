@@ -1,3 +1,4 @@
+import Footer from '@/components/footer/footer';
 import './globals.css';
 import Header from '@/components/header/header';
 import I18nProvider from '@/components/I18nProvider/I18nProvider';
@@ -12,10 +13,13 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         {/* Wrap UI in client-side i18n provider */}
-        <I18nProvider>
-          <Header />
-          <main>{children}</main>
-        </I18nProvider>
+       <div className="pageWrapper">
+          <I18nProvider>
+            <Header />
+            <main className="contentWrapper">{children}</main>
+            <Footer />
+          </I18nProvider>
+        </div>
       </body>
     </html>
   );

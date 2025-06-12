@@ -41,6 +41,7 @@
 .languageSwitcher h2 {
   margin: 0;
   font-size: 2rem;
+  cursor: pointer;
 }
 
 .activeLang {
@@ -77,22 +78,28 @@
   transition: opacity 0.4s ease;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1450px) {
+  .container {
+    padding: 0rem 2rem;
+  }
   .navContainer {
-  font-size: 1.5rem;
+    font-size: 1.5rem;
+  }
+  .languageSwitcher h2 {
+    font-size: 1.5rem;
   }
 }
 
 @media (max-width: 900px) {
   .navContainer > :nth-child(1),
-  .navContainer > :nth-child(2){
-  display: none;
+  .navContainer > :nth-child(2) {
+    display: none;
   }
 }
 
-@media (max-width:  768px) {
+@media (max-width: 768px) {
   .container {
-    padding: 0.5rem 2rem
+    padding: 0.5rem 2rem;
   }
   .logoImage {
     width: 80px;
@@ -100,7 +107,7 @@
   }
 }
 
-@media (max-width:  380px) {
+@media (max-width: 380px) {
   .logoImage {
     width: 80px;
     height: 80px;

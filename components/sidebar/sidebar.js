@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 
 import logo from '@/public/logos/federation-logo-white.png';
@@ -14,7 +14,9 @@ export default function Sidebar({ isMenuOpen, setIsMenuOpen }) {
     <>
       {isMenuOpen && (
         <div
-          className={`${classes.backdrop} ${isMenuOpen ? classes.backdropVisible : ''}`}
+          className={`${classes.backdrop} ${
+            isMenuOpen ? classes.backdropVisible : ''
+          }`}
           onClick={() => setIsMenuOpen(false)}
         >
           <Image
@@ -27,19 +29,25 @@ export default function Sidebar({ isMenuOpen, setIsMenuOpen }) {
         </div>
       )}
 
-      <div className={`${classes.sidebar} ${isMenuOpen ? classes.sidebarOpen : ''}`}>
+      <div
+        className={`${classes.sidebar} ${
+          isMenuOpen ? classes.sidebarOpen : ''
+        }`}
+      >
         <div className={classes.sidebarHeader}>
           <button
             onClick={() => setIsMenuOpen(false)}
             className={classes.closeButton}
             aria-label="Close menu"
           >
-            ×
+            <span>&#10005;</span>
           </button>
         </div>
 
         <div className={classes.sidebarLinks}>
-          <Link href="/" onClick={() => setIsMenuOpen(false)}>{t('home')}</Link>
+          <Link href="/" onClick={() => setIsMenuOpen(false)}>
+            {t('home')}
+          </Link>
 
           <Link href="/events" onClick={() => setIsMenuOpen(false)}>
             {t('events')}
@@ -51,12 +59,24 @@ export default function Sidebar({ isMenuOpen, setIsMenuOpen }) {
             <p>{t('horsesSub')}</p>
           </Link>
 
-          <Link href="/gallery" onClick={() => setIsMenuOpen(false)}>{t('gallery')}</Link>
-          <Link href="/standings" onClick={() => setIsMenuOpen(false)}>{t('standings')}</Link>
-          <Link href="/rules" onClick={() => setIsMenuOpen(false)}>{t('rules')}</Link>
-          <Link href="/sponsors" onClick={() => setIsMenuOpen(false)}>{t('sponsors')}</Link>
-          <Link href="/news" onClick={() => setIsMenuOpen(false)}>{t('news')}</Link>
-          <Link href="/contact" onClick={() => setIsMenuOpen(false)}>{t('contact')}</Link>
+          <Link href="/gallery" onClick={() => setIsMenuOpen(false)}>
+            {t('gallery')}
+          </Link>
+          <Link href="/standings" onClick={() => setIsMenuOpen(false)}>
+            {t('standings')}
+          </Link>
+          <Link href="/rules" onClick={() => setIsMenuOpen(false)}>
+            {t('rules')}
+          </Link>
+          <Link href="/sponsors" onClick={() => setIsMenuOpen(false)}>
+            {t('sponsors')}
+          </Link>
+          <Link href="/news" onClick={() => setIsMenuOpen(false)}>
+            {t('news')}
+          </Link>
+          <Link href="/contact" onClick={() => setIsMenuOpen(false)}>
+            {t('contact')}
+          </Link>
         </div>
       </div>
     </>

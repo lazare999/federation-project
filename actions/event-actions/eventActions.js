@@ -1,7 +1,11 @@
 // eventActions.js
-import { ref, push, set, get } from "firebase/database";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
-import { database, storage } from "@/lib/firebase/firebase"; // Adjust path if needed
+import { database, storage } from '@/lib/firebase/firebase'; // Adjust path if needed
+import { get, push, ref, set } from 'firebase/database';
+import {
+  getDownloadURL,
+  ref as storageRef,
+  uploadBytes,
+} from 'firebase/storage';
 
 // ADD EVENT
 export const addEvent = async (formData) => {
@@ -11,7 +15,10 @@ export const addEvent = async (formData) => {
     // Upload each image to Firebase Storage
     if (formData.images && formData.images.length > 0) {
       for (const imageFile of formData.images) {
-        const imageStorageRef = storageRef(storage, `eventImages/${imageFile.name}`);
+        const imageStorageRef = storageRef(
+          storage,
+          `eventImages/${imageFile.name}`
+        );
         await uploadBytes(imageStorageRef, imageFile);
         const imageUrl = await getDownloadURL(imageStorageRef);
         uploadedImageUrls.push(imageUrl);
@@ -26,13 +33,13 @@ export const addEvent = async (formData) => {
     };
 
     // Save to Realtime Database
-    const eventsRef = ref(database, "events");
+    const eventsRef = ref(database, 'events');
     const newEventRef = push(eventsRef);
     await set(newEventRef, eventData);
 
     return { success: true, eventId: newEventRef.key };
   } catch (error) {
-    console.error("Error adding event:", error);
+    console.error('Error adding event:', error);
     throw new Error(`Failed to upload event: ${error.message}`);
   }
 };
@@ -40,7 +47,7 @@ export const addEvent = async (formData) => {
 // GET EVENTS
 export const getEvents = async () => {
   try {
-    const eventsRef = ref(database, "events");
+    const eventsRef = ref(database, 'events');
     const snapshot = await get(eventsRef);
 
     if (snapshot.exists()) {
@@ -54,7 +61,7 @@ export const getEvents = async () => {
       return [];
     }
   } catch (error) {
-    console.error("Error fetching events:", error);
-    throw new Error("Failed to fetch events.");
+    console.error('Error fetching events:', error);
+    throw new Error('Failed to fetch events.');
   }
 };

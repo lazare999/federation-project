@@ -9,6 +9,7 @@ export default function AdminPage() {
       <div className={classes.cardGrid}>
         <AdminCard title="Events" href="/admin/events" />
         <AdminCard title="Horses" href="/admin/horses" />
+          <AdminCard title="Sponsors" href="/admin/sponsors" />
       </div>
     </div>
   );

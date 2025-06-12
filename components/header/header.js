@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import Sidebar from '../sidebar/sidebar';
 import logo from '@/public/logos/federation-logo-black.png';
+import Sidebar from '../sidebar/sidebar';
 
 import classes from '@/styles/header/header.module.css';
 
@@ -31,7 +31,7 @@ export default function Header() {
     const handleScroll = () => {
       const currentY = window.scrollY;
 
-      setScrolled(currentY > window.innerHeight * 0.9);
+      setScrolled(currentY > window.innerHeight * 0.8);
 
       if (currentY > window.innerHeight) {
         setHidden(currentY > lastScrollY);
@@ -46,11 +46,15 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY, isHomePage]);
 
-  const headerClasses = `${classes.container} ${scrolled ? classes.scrolled : ''} ${
-    hidden ? classes.hidden : ''
-  } ${!isHomePage ? classes.nonHomeHeader : ''}`;
+  const headerClasses = `${classes.container} ${
+    scrolled ? classes.scrolled : ''
+  } ${hidden ? classes.hidden : ''} ${
+    !isHomePage ? classes.nonHomeHeader : ''
+  }`;
 
-  const imageClasses = `${scrolled ? classes.imageVisible : classes.imageHidden}`;
+  const imageClasses = `${
+    scrolled ? classes.imageVisible : classes.imageHidden
+  }`;
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
@@ -63,8 +67,6 @@ export default function Header() {
           <Image
             src={logo}
             alt={t('header.logoAlt')}
-            width={150}
-            height={150}
             className={`${imageClasses} ${classes.logoImage}`}
             priority
           />
@@ -74,27 +76,27 @@ export default function Header() {
           <h2>{t('header.contact')}</h2>
 
           <div className={classes.languageSwitcher}>
-             <h2
-    onClick={() => changeLanguage('en')}
-    className={i18n.language === 'en' ? classes.activeLang : ''}
-    style={{ cursor: 'pointer' }}
-  >
-    {t('header.languageEnglish')}
-  </h2>
-  <span>/</span>
-  <h2
-    onClick={() => changeLanguage('ka')}
-    className={i18n.language === 'ka' ? classes.activeLang : ''}
-    style={{ cursor: 'pointer' }}
-  >
-    {t('header.languageGeorgian')}
-  </h2>
+            <h2
+              onClick={() => changeLanguage('en')}
+              className={i18n.language === 'en' ? classes.activeLang : ''}
+            >
+              {t('header.languageEnglish')}
+            </h2>
+            <span>/</span>
+            <h2
+              onClick={() => changeLanguage('ka')}
+              className={i18n.language === 'ka' ? classes.activeLang : ''}
+            >
+              {t('header.languageGeorgian')}
+            </h2>
           </div>
 
           {!isMenuOpen && (
             <button
               onClick={() => setIsMenuOpen(true)}
-              className={`${classes.burgerButton} ${scrolled ? classes.burgerScrolled : ''}`}
+              className={`${classes.burgerButton} ${
+                scrolled ? classes.burgerScrolled : ''
+              }`}
               aria-label={t('header.openMenu')}
             >
               ☰
