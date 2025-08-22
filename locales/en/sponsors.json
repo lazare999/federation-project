@@ -1,0 +1,8 @@
+{
+  "page": {
+    "title": "PARTNERS",
+    "joinButton": "JOIN OUR FAMILY"
+  },
+  "loading": "Loading sponsors...",
+  "error": "Failed to fetch sponsors"
+}

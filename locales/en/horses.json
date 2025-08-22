@@ -1,0 +1,20 @@
+{
+  "labels": {
+    "name": "Name",
+    "birthYear": "Birth Year",
+    "gender": "Gender",
+    "color": "Color",
+    "studbook": "Studbook",
+    "category": "Category"
+  },
+  "filters": {
+    "searchByName": "Search by name",
+    "selectCategory": "Select category",
+    "filterButton": "Filter"
+  },
+  "messages": {
+    "noHorses": "No horses found.",
+    "loading": "Loading horses...",
+    "error": "Failed to load horses."
+  }
+}

@@ -1,0 +1,19 @@
+.newsContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  padding: 0 2rem;
+  justify-items: center;
+}
+
+@media (max-width: 780px) and (min-width: 501px) {
+  .newsContainer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .newsContainer {
+    grid-template-columns: 1fr;
+  }
+}

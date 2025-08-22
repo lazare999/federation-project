@@ -34,20 +34,6 @@
   font-size: 2rem;
 }
 
-.languageSwitcher {
-  display: flex;
-}
-
-.languageSwitcher h2 {
-  margin: 0;
-  font-size: 2rem;
-  cursor: pointer;
-}
-
-.activeLang {
-  text-decoration: underline;
-}
-
 .burgerButton {
   background: none;
   border: none;

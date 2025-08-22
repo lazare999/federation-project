@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -10,9 +11,10 @@ import logo from '@/public/logos/federation-logo-black.png';
 import Sidebar from '../sidebar/sidebar';
 
 import classes from '@/styles/header/header.module.css';
+import LanguageSwitcher from '../language-switcher/languageSwitcher';
 
 export default function Header() {
-  const { t, i18n } = useTranslation('common'); // use common namespace
+  const { t, i18n } = useTranslation('common');
   const pathname = usePathname();
   const isHomePage = pathname === '/';
 
@@ -21,30 +23,41 @@ export default function Header() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     setScrolled(!isHomePage);
   }, [pathname, isHomePage]);
 
-  useEffect(() => {
-    if (!isHomePage) return;
+  const isDetailsPage =
+    pathname.startsWith('/events/') || pathname.startsWith('/news/');
 
+  useEffect(() => {
+    // Always show solid header on non-home pages
+    if (!isHomePage) {
+      setScrolled(true);
+      setHidden(false);
+      return;
+    }
+
+    let lastY = 0;
     const handleScroll = () => {
       const currentY = window.scrollY;
-
       setScrolled(currentY > window.innerHeight * 0.8);
 
       if (currentY > window.innerHeight) {
-        setHidden(currentY > lastScrollY);
+        setHidden(currentY > lastY);
       } else {
         setHidden(false);
       }
 
-      setLastScrollY(currentY);
+      lastY = currentY;
     };
 
+    handleScroll();
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY, isHomePage]);
+  }, [pathname, isHomePage]);
 
   const headerClasses = `${classes.container} ${
     scrolled ? classes.scrolled : ''
@@ -55,10 +68,6 @@ export default function Header() {
   const imageClasses = `${
     scrolled ? classes.imageVisible : classes.imageHidden
   }`;
-
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-  };
 
   return (
     <>
@@ -73,23 +82,11 @@ export default function Header() {
         </Link>
 
         <div className={classes.navContainer}>
-          <h2>{t('header.contact')}</h2>
+          <Link href="/contact" passHref>
+            <h2>{t('header.contact')}</h2>
+          </Link>
 
-          <div className={classes.languageSwitcher}>
-            <h2
-              onClick={() => changeLanguage('en')}
-              className={i18n.language === 'en' ? classes.activeLang : ''}
-            >
-              {t('header.languageEnglish')}
-            </h2>
-            <span>/</span>
-            <h2
-              onClick={() => changeLanguage('ka')}
-              className={i18n.language === 'ka' ? classes.activeLang : ''}
-            >
-              {t('header.languageGeorgian')}
-            </h2>
-          </div>
+          <LanguageSwitcher />
 
           {!isMenuOpen && (
             <button

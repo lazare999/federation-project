@@ -83,6 +83,17 @@
   text-align: center;
 }
 
+.title {
+  font-size: 3rem;
+  background-color: black;
+  color: white;
+  display: inline-block;
+  padding: 0.5rem 2.5rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-left: 1rem;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1245px) {
   .imgContainer {
@@ -103,5 +114,11 @@
 
   .bottomScrollSection {
     bottom: 14%;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 2rem;
   }
 }

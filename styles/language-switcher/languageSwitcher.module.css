@@ -1,0 +1,14 @@
+.languageSwitcher {
+  display: flex;
+  font-size: 2rem;
+}
+
+.languageSwitcher h2 {
+  margin: 0;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.activeLang {
+  text-decoration: underline;
+}

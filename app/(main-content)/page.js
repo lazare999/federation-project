@@ -7,6 +7,9 @@ import { useTranslation } from 'react-i18next';
 import backgroundImg from '@/public/home-page-background/home-page-background.jpg';
 import logo from '@/public/logos/federation-logo-white.png';
 
+import EventCarousel from '@/components/event/event-carousel/eventCarousel';
+import HorseCarousel from '@/components/horses/horse-carousel/horseCarousel';
+import NewsCarousel from '@/components/news/news-carousel/newsCarousel';
 import classes from '@/styles/home-page/homePage.module.css';
 import Sponsors from './sponsors/page';
 
@@ -16,7 +19,7 @@ export default function Home() {
 
   const handleScroll = () => {
     if (sponsorsRef.current) {
-      const yOffset = -100; // Adjust for any sticky header or spacing
+      const yOffset = -120; // Adjust for any sticky header or spacing
       const y =
         sponsorsRef.current.getBoundingClientRect().top +
         window.pageYOffset +
@@ -54,11 +57,17 @@ export default function Home() {
         <Sponsors />
       </div>
 
-      <div className={classes.content}>
+      <h1 className={classes.title}>Horses</h1>
+      <HorseCarousel />
+      <h1 className={classes.title}>Events</h1>
+      <EventCarousel />
+      <h1 className={classes.title}>News</h1>
+      <NewsCarousel />
+      {/* <div className={classes.content}>
         {[...Array(5)].map((_, i) => (
           <h1 key={i}>{t('home.title')}</h1>
         ))}
-      </div>
+      </div> */}
     </div>
   );
 }

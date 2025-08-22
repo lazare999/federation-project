@@ -1,0 +1,32 @@
+{
+  "details": {
+    "timeSchedule": "Time Schedule",
+    "results": "Results",
+    "photos": "Photos",
+    "loading": "Loading…",
+    "error": "Failed to load event",
+    "notFound": "Event not found"
+  },
+  "timeSchedule": {
+    "noCompetitions": "No competitions available for this event.",
+    "presentedBy": "Presented by Georgia Equestrian Federation",
+    "startList": "Start List",
+    "results": "Results"
+  },
+  "results": {
+    "noResultsMessage": "Results will be published after the competition.",
+    "start": "START",
+    "rank": "Rank",
+    "rider": "Rider",
+    "horse": "Horse",
+    "faults": "Faults",
+    "time": "Time"
+  },
+  "photos": {
+    "noPhotosMessage": "No photos available for this event."
+  },
+  "page": {
+    "error": "Failed to load events",
+    "noEvents": "No events found"
+  }
+}

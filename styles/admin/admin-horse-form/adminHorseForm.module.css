@@ -1,0 +1,54 @@
+.container {
+  display: flex;
+  gap: 15rem;
+}
+
+.inputContainer {
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+  font-size: 2rem;
+  margin: 1rem 0;
+}
+
+.inputContainer input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  /* border-radius: 8px; */
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.inputContainer select {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  background-color: white;
+  border-radius: 8px;
+  appearance: none; /* removes default arrow in some browsers */
+  background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='14' viewBox='0 0 24 24' width='14' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.inputContainer select:focus {
+  border-color: #3694d7;
+  outline: none;
+}
+
+.button {
+  background-color: white;
+  border: 2px solid black;
+  padding: 0.75rem 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.button:hover {
+  background-color: black;
+  color: white;
+}

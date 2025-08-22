@@ -1,31 +1,30 @@
 'use client';
 
 import { getEvents } from '@/actions/event-actions/eventActions';
-import { useEffect, useState } from 'react';
+import i18n from '@/lib/i18n/i18n';
+import { useQuery } from '@tanstack/react-query';
 
 import EventCard from '@/components/event/event-card/eventCard';
 import EventFilter from '@/components/event/event-filter/eventFilter';
 
 import Loader from '@/components/loader/loader';
 import classes from '@/styles/events/event-page/events.module.css';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function Events() {
-  const [events, setEvents] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('all'); // active filter
-  const [pendingCategory, setPendingCategory] = useState('all'); // value in select dropdown
+  const { t } = useTranslation('events');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [pendingCategory, setPendingCategory] = useState('all');
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const data = await getEvents();
-        setEvents(data);
-      } catch (error) {
-        console.error('Failed to fetch events:', error);
-      }
-    };
-
-    fetchEvents();
-  }, []);
+  const {
+    data: events = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['events', i18n.language],
+    queryFn: getEvents,
+  });
 
   const now = new Date();
 
@@ -42,6 +41,9 @@ export default function Events() {
     return false;
   });
 
+  if (isLoading) return <Loader />;
+  if (error) return <div>{t('page.error')}</div>;
+
   return (
     <div className={classes.wrapper}>
       <EventFilter
@@ -50,9 +52,13 @@ export default function Events() {
         onFilterClick={() => setSelectedCategory(pendingCategory)}
       />
       {filteredEvents.length === 0 ? (
-        <Loader />
+        <div>{t('page.noEvents')}</div>
       ) : (
-        <EventCard events={filteredEvents} />
+        <div className={classes.grid}>
+          {filteredEvents.map((event) => (
+            <EventCard key={event.id || event.$id} event={event} />
+          ))}
+        </div>
       )}
     </div>
   );

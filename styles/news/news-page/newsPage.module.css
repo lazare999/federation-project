@@ -1,0 +1,40 @@
+.newsPage {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.heading {
+  font-size: 4rem;
+  background-color: black;
+  color: white;
+  display: inline-block;
+  padding: 0.5rem 2.5rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.underline {
+  width: 120px;
+  height: 3px;
+  background-color: black;
+  margin: 1rem auto 2rem auto;
+}
+
+@media (max-width: 1240px) {
+  .heading {
+    font-size: 3rem;
+  }
+  .underline {
+    width: 100px;
+  }
+}
+
+@media (max-width: 920px) {
+  .heading {
+    font-size: 2rem;
+  }
+  .underline {
+    width: 50px;
+    height: 3px;
+  }
+}

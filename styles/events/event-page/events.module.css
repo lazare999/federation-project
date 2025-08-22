@@ -20,6 +20,14 @@
   animation: l1 1s infinite;
   text-align: center;
 }
+.grid {
+  display: grid;
+  justify-content: center;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 5rem 2rem;
+  margin-bottom: 3rem;
+}
+
 @keyframes l1 {
   to {
     transform: rotate(0.5turn);

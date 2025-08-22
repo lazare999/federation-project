@@ -1,0 +1,17 @@
+{
+  "page": {
+    "title": "GET IN TOUCH:"
+  },
+  "form": {
+    "name": "NAME:",
+    "phone": "PHONE:",
+    "email": "EMAIL:",
+    "message": "MESSAGE:",
+    "submit": "SUBMIT",
+    "status": {
+      "sending": "Sending...",
+      "success": "Message sent!",
+      "error": "Failed to send. Try again."
+    }
+  }
+}

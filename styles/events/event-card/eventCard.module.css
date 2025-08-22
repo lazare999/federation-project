@@ -1,15 +1,13 @@
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 5rem 2rem;
-}
-
 .card {
   position: relative;
   border-radius: 12px;
   overflow: visible;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   cursor: pointer;
+}
+
+.carouselMargin {
+  margin: 4rem 2rem;
 }
 
 .card:hover {

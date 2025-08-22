@@ -1,7 +1,7 @@
 import Footer from '@/components/footer/footer';
-import './globals.css';
 import Header from '@/components/header/header';
-import I18nProvider from '@/components/I18nProvider/I18nProvider';
+import './globals.css';
+import Providers from './providers';
 
 export const metadata = {
   title: 'Create Next App',
@@ -12,14 +12,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        {/* Wrap UI in client-side i18n provider */}
-       <div className="pageWrapper">
-          <I18nProvider>
+        <Providers>
+          <div className="pageWrapper">
             <Header />
             <main className="contentWrapper">{children}</main>
             <Footer />
-          </I18nProvider>
-        </div>
+          </div>
+        </Providers>
       </body>
     </html>
   );

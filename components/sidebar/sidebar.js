@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import logo from '@/public/logos/federation-logo-white.png';
 import classes from '@/styles/sidebar/sidebar.module.css';
+import LanguageSwitcher from '../language-switcher/languageSwitcher';
 
 export default function Sidebar({ isMenuOpen, setIsMenuOpen }) {
   const { t } = useTranslation('sidebar'); // loading the sidebar namespace
@@ -42,6 +43,7 @@ export default function Sidebar({ isMenuOpen, setIsMenuOpen }) {
           >
             <span>&#10005;</span>
           </button>
+          <LanguageSwitcher />
         </div>
 
         <div className={classes.sidebarLinks}>
@@ -59,21 +61,26 @@ export default function Sidebar({ isMenuOpen, setIsMenuOpen }) {
             <p>{t('horsesSub')}</p>
           </Link>
 
-          <Link href="/gallery" onClick={() => setIsMenuOpen(false)}>
-            {t('gallery')}
-          </Link>
           <Link href="/standings" onClick={() => setIsMenuOpen(false)}>
             {t('standings')}
           </Link>
-          <Link href="/rules" onClick={() => setIsMenuOpen(false)}>
+
+          <a
+            href="/demo-pdf/demo-pdf.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             {t('rules')}
-          </Link>
+          </a>
+
           <Link href="/sponsors" onClick={() => setIsMenuOpen(false)}>
             {t('sponsors')}
           </Link>
+
           <Link href="/news" onClick={() => setIsMenuOpen(false)}>
             {t('news')}
           </Link>
+
           <Link href="/contact" onClick={() => setIsMenuOpen(false)}>
             {t('contact')}
           </Link>

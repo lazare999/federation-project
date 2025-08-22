@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import classes from '@/styles/horses/horse-filter/hroseFilter.module.css';
+import { useState } from 'react';
 
 export default function HorseFilter({ onFilter }) {
   const [showFilter, setShowFilter] = useState(false);
@@ -15,14 +15,20 @@ export default function HorseFilter({ onFilter }) {
   return (
     <div className={classes.container}>
       {!showFilter && (
-        <button className={classes.toggleButton} onClick={() => setShowFilter(true)}>
+        <button
+          className={classes.toggleButton}
+          onClick={() => setShowFilter(true)}
+        >
           Filter Options
         </button>
       )}
 
       {showFilter && (
         <div className={classes.filterContainer}>
-          <button className={classes.closeButton} onClick={() => setShowFilter(false)}>
+          <button
+            className={classes.closeButton}
+            onClick={() => setShowFilter(false)}
+          >
             &times;
           </button>
           <span className={classes.label}>FILTER HORSES:</span>
@@ -32,9 +38,9 @@ export default function HorseFilter({ onFilter }) {
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
             <option value="">All Categories</option>
-            <option value="SHOW HORSES">SHOW HORSES</option>
-            <option value="SCHOOL HORSES">SCHOOL HORSES</option>
-            <option value="RETIRED HORSES">RETIRED HORSES</option>
+            <option value="show">SHOW HORSES</option>
+            <option value="school">SCHOOL HORSES</option>
+            <option value="retired">RETIRED HORSES</option>
           </select>
           <span className={classes.orAnd}>OR/AND</span>
           <input

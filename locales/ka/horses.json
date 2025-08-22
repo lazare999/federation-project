@@ -1,0 +1,20 @@
+{
+  "labels": {
+    "name": "სახელი",
+    "birthYear": "დაბადების წელი",
+    "gender": "სქესი",
+    "color": "ფერი",
+    "studbook": "საგვარეულო წიგნი",
+    "category": "კატეგორია"
+  },
+  "filters": {
+    "searchByName": "ძებნა სახელით",
+    "selectCategory": "აირჩიე კატეგორია",
+    "filterButton": "გაფილტვრა"
+  },
+  "messages": {
+    "noHorses": "ცხენები ვერ მოიძებნა.",
+    "loading": "ცხენების ჩატვირთვა...",
+    "error": "შეცდომა ცხენების ჩატვირთვისას."
+  }
+}

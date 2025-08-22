@@ -23,7 +23,6 @@
 .sidebarHeader {
   display: flex;
   flex-direction: row-reverse;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
@@ -67,7 +66,7 @@
   font-size: 1.5rem;
   font-weight: 100;
   color: #434343;
-      margin-left: 1.5rem;
+  margin-left: 1.5rem;
 }
 
 .closeButton {
@@ -76,6 +75,7 @@
   border: none;
   font-size: 3rem;
   cursor: pointer;
+  margin-left: 2rem;
 }
 
 /* Optional overlay */
@@ -110,7 +110,7 @@
 
 .logoInBackdrop {
   margin: 2rem;
-  position: relative;  
+  position: relative;
   z-index: 2;
 }
 
@@ -136,17 +136,16 @@
   .sidebarLinks p {
     font-size: 0.8rem;
   }
-  
 }
 
 @media (max-width: 500px) {
-  .sidebar{
+  .sidebar {
     width: 100%;
   }
   .sidebarLinks {
     gap: 0.3rem;
   }
-.backdrop{
-  display: none;
-}
+  .backdrop {
+    display: none;
+  }
 }
