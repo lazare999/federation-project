@@ -6,7 +6,8 @@
   background-color: white;
   border: none;
   padding: 1.5rem 10rem;
-
+  font-family: 'ArchyEDT Bold', sans-serif;
+  font-weight: normal;
   font-size: 5rem;
   cursor: pointer;
   transition: all 0.3s ease;

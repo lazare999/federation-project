@@ -71,13 +71,13 @@ import axiosInstance from '@/utils/axiosInstance';
 // Fetch all horses
 export const getHorses = async () => {
   const res = await axiosInstance.get('horses/');
-  return res.data;
+  console.log(res.data);
+  return res.data.filter((horse) => horse.is_active);
 };
 
 // Fetch single horse by ID
 export const fetchHorseById = async (id) => {
-  const horses = await getHorses();
-  const horse = horses.find((h) => h.id === Number(id));
-  if (!horse) throw new Error('Horse not found');
-  return horse;
+  const res = await axiosInstance.get(`horses/${id}`);
+  if (!res.data) throw new Error('Horse not found');
+  return res.data;
 };
