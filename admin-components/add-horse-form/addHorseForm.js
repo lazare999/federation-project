@@ -1,6 +1,6 @@
 'use client';
 
-import { addHorse } from '@/actions/horse-action/horseAction';
+// import { addHorse } from '@/actions/horse-action/horseAction';
 import Dropzone from '@/admin-components/add-images/Dropzone';
 import { useState } from 'react';
 

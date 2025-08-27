@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Dropzone from '../add-images/Dropzone';
-import { addSponsor } from '@/actions/sponsor-actions/sponsorActions';
+// import { addSponsor } from '@/actions/sponsor-actions/sponsorActions';
 
 export default function AddSponsorsForm() {
   const [formData, setFormData] = useState({

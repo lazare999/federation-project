@@ -1,6 +1,6 @@
 'use client';
 
-import { addEvent } from '@/actions/event-actions/eventActions';
+// import { addEvent } from '@/actions/event-actions/eventActions';
 import { useState } from 'react';
 
 import Dropzone from '@/admin-components/add-images/Dropzone';
