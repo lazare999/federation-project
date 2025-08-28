@@ -11,6 +11,13 @@
   font-size: 5rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  /* Reset native styling for iOS and other browsers */
+  appearance: none; /* Standard */
+  -webkit-appearance: none; /* Safari / iOS */
+  -moz-appearance: none; /* Firefox */
+  -webkit-tap-highlight-color: transparent; /* remove blue tap highlight */
+  color: black;
+  text-decoration: none;
 }
 
 .button:hover {
