@@ -4,6 +4,7 @@ import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 
 import { getHorses } from '@/actions/horse-action/horseAction'; // your fetch function
+import Loader from '@/components/loader/loader';
 import classes from '@/styles/horses/horses-list/horsesList.module.css';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -27,7 +28,7 @@ export default function HorseCarousel() {
     router.push(`/horses/${horseId}`);
   };
 
-  if (isLoading) return <div>{t('loading')}</div>;
+  if (isLoading) return <Loader />;
   if (error) return <div>{t('error_loading_horses')}</div>;
 
   const responsive = {

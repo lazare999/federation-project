@@ -1,24 +1,26 @@
 'use client';
 
 import classes from '@/styles/horses/horses-list/horsesList.module.css';
-import { useTranslation } from 'react-i18next';
-
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function HorseCard({ horse, onClick }) {
   const { t } = useTranslation('horses');
 
-  // Track if dragging
   const [dragging, setDragging] = useState(false);
-  const dragStartX = useRef(0);
+  const dragStart = useRef({ x: 0, y: 0 });
 
+  // Mouse events
   const handleMouseDown = (e) => {
-    dragStartX.current = e.clientX;
+    dragStart.current = { x: e.clientX, y: e.clientY };
     setDragging(false);
   };
 
   const handleMouseMove = (e) => {
-    if (Math.abs(e.clientX - dragStartX.current) > 5) {
+    if (
+      Math.abs(e.clientX - dragStart.current.x) > 10 ||
+      Math.abs(e.clientY - dragStart.current.y) > 10
+    ) {
       setDragging(true);
     }
   };
@@ -29,16 +31,20 @@ export default function HorseCard({ horse, onClick }) {
     }
   };
 
-  // For touch devices:
-  const dragStartTouchX = useRef(0);
-
+  // Touch events
   const handleTouchStart = (e) => {
-    dragStartTouchX.current = e.touches[0].clientX;
+    dragStart.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
     setDragging(false);
   };
 
   const handleTouchMove = (e) => {
-    if (Math.abs(e.touches[0].clientX - dragStartTouchX.current) > 5) {
+    if (
+      Math.abs(e.touches[0].clientX - dragStart.current.x) > 10 ||
+      Math.abs(e.touches[0].clientY - dragStart.current.y) > 10
+    ) {
       setDragging(true);
     }
   };

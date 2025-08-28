@@ -3,6 +3,8 @@
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 
+import Loader from '@/components/loader/loader';
+
 import { getEvents } from '@/actions/event-actions/eventActions';
 import { useQuery } from '@tanstack/react-query';
 import EventCard from '../event-card/eventCard';
@@ -17,7 +19,7 @@ export default function EventCarousel() {
     queryFn: getEvents,
   });
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <Loader />;
   if (error) return <div>Error loading events</div>;
 
   const responsive = {

@@ -2,7 +2,10 @@
   "home": {
     "scrollText": "SCROLL",
     "title": "Lazare Osiashvili",
-    "logoAlt": "federation logo"
+    "logoAlt": "federation logo",
+    "horses": "Horses",
+    "events": "Events",
+    "news": "News"
   },
   "header": {
     "contact": "contact",

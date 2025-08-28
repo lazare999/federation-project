@@ -71,7 +71,6 @@ import axiosInstance from '@/utils/axiosInstance';
 // Fetch all horses
 export const getHorses = async () => {
   const res = await axiosInstance.get('horses/');
-  console.log(res.data);
   return res.data.filter((horse) => horse.is_active);
 };
 

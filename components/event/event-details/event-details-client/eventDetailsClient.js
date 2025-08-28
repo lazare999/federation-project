@@ -4,6 +4,7 @@ import { fetchEventById } from '@/actions/event-actions/eventActions';
 import EventPhotos from '@/components/event/event-details/event-photos/eventPhotos';
 import EventResults from '@/components/event/event-details/event-results/eventResults';
 import EventTimeSchedule from '@/components/event/event-details/event-time-schedule/eventTimeSchedule';
+import Loader from '@/components/loader/loader';
 
 import classes from '@/styles/events/event-details/eventDetails.module.css';
 
@@ -24,9 +25,7 @@ export default function EventDetailsClient({ eventId }) {
     queryFn: () => fetchEventById(eventId),
   });
 
-  if (isLoading) {
-    return <div>{t('details.loading')}</div>;
-  }
+  if (isLoading) return <Loader />;
 
   if (error) {
     return <div>{t('details.error')}</div>;

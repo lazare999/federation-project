@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -19,7 +20,7 @@ export default function Home() {
 
   const handleScroll = () => {
     if (sponsorsRef.current) {
-      const yOffset = -120; // Adjust for any sticky header or spacing
+      const yOffset = -120;
       const y =
         sponsorsRef.current.getBoundingClientRect().top +
         window.pageYOffset +
@@ -57,17 +58,20 @@ export default function Home() {
         <Sponsors />
       </div>
 
-      <h1 className={classes.title}>Horses</h1>
+      <Link href="/horses">
+        <h1 className={classes.title}>{t('home.horses')}</h1>
+      </Link>
       <HorseCarousel />
-      <h1 className={classes.title}>Events</h1>
+
+      <Link href="/events">
+        <h1 className={classes.title}>{t('home.events')}</h1>
+      </Link>
       <EventCarousel />
-      <h1 className={classes.title}>News</h1>
+
+      <Link href="/news">
+        <h1 className={classes.newsTitle}>{t('home.news')}</h1>
+      </Link>
       <NewsCarousel />
-      {/* <div className={classes.content}>
-        {[...Array(5)].map((_, i) => (
-          <h1 key={i}>{t('home.title')}</h1>
-        ))}
-      </div> */}
     </div>
   );
 }

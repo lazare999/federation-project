@@ -12,7 +12,7 @@ export default function NewsCard({ item, isCarouselCard = false }) {
   const handleCardClick = () => {
     router.push(`/news/${item.id}`);
   };
-  console.log(item);
+
   return (
     <div
       className={`${classes.card} ${

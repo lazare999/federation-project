@@ -102,3 +102,12 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 480px) {
+  .carouselMargin {
+    max-width: 280px;
+  }
+  .img {
+    height: 170px;
+  }
+}
