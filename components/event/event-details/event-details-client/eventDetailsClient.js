@@ -42,7 +42,10 @@ export default function EventDetailsClient({ eventId }) {
         <h2 className={classes.heading}>{t('details.timeSchedule')}</h2>
         <div className={classes.underline}></div>
         <div className={classes.TimeScheduleContainer}>
-          <EventTimeSchedule event={event} />
+          <EventTimeSchedule
+            event={event}
+            onShowResultsTab={() => setActiveTab('results')}
+          />
         </div>
       </div>
 
@@ -68,7 +71,9 @@ export default function EventDetailsClient({ eventId }) {
 
       {/* Tab content */}
       {activeTab === 'results' ? (
-        <EventResults event={event} />
+        <div id="results-section">
+          <EventResults event={event} />
+        </div>
       ) : (
         <EventPhotos />
       )}

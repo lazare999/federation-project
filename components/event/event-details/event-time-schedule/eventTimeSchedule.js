@@ -2,13 +2,60 @@
 
 import styles from '@/styles/events/event-time-schedule/eventTimeSchedule.module.css';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import Modal from 'react-modal';
+import StartList from '../start-list-modal/startList';
 
-export default function EventTimeSchedule({ event }) {
+// accessibility
+if (typeof window !== 'undefined') {
+  Modal.setAppElement('body');
+}
+
+export default function EventTimeSchedule({ event, onShowResultsTab }) {
   const { t } = useTranslation('events');
+  const [modalIsOpen, setIsOpen] = useState(false);
+  const [selectedComp, setSelectedComp] = useState(null);
+  const [scrollPending, setScrollPending] = useState(false); // flag to scroll after tab switch
+
+  function openModal(comp) {
+    setSelectedComp(comp);
+    setIsOpen(true);
+  }
+
+  function closeModal() {
+    setIsOpen(false);
+    setSelectedComp(null);
+  }
+
+  function scrollToResults() {
+    const resultsElement = document.getElementById('results-section');
+    if (resultsElement) {
+      const header = document.querySelector('header'); // your fixed header selector
+      const yOffset = header ? -header.offsetHeight : -80; // use header height if available
+      const y =
+        resultsElement.getBoundingClientRect().top +
+        window.pageYOffset +
+        yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }
+
+  // useEffect to scroll after tab switch
+  useEffect(() => {
+    if (scrollPending) {
+      scrollToResults();
+      setScrollPending(false);
+    }
+  }, [scrollPending]);
 
   if (!event || !event.competitions?.length) {
     return <div>{t('timeSchedule.noCompetitions')}</div>;
+  }
+
+  function handleResultsClick() {
+    if (onShowResultsTab) onShowResultsTab(); // switch tab first
+    setScrollPending(true); // scroll after tab renders
   }
 
   return (
@@ -37,17 +84,29 @@ export default function EventTimeSchedule({ event }) {
             </div>
 
             <div className={styles.linksBox}>
+              {/* Start List */}
               <Link
                 href="#"
-                className={!hasResults ? styles.disabledLink : ''}
-                aria-disabled={!hasResults}
+                className={styles.startListLink}
+                onClick={(e) => {
+                  e.preventDefault();
+                  openModal(comp);
+                }}
               >
                 <span>{t('timeSchedule.startList')}</span> →
               </Link>
+
+              {/* Results */}
               <Link
                 href="#"
-                className={!hasResults ? styles.disabledLink : ''}
+                className={`${styles.resultsLink} ${
+                  !hasResults ? styles.disabledLink : ''
+                }`}
                 aria-disabled={!hasResults}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (hasResults) handleResultsClick();
+                }}
               >
                 <span>{t('timeSchedule.results')}</span> →
               </Link>
@@ -55,6 +114,37 @@ export default function EventTimeSchedule({ event }) {
           </div>
         );
       })}
+
+      {/* Modal for Start List */}
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={closeModal}
+        contentLabel="Start List Modal"
+        style={{
+          content: {
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            transform: 'translate(-50%, -50%)',
+            padding: '2rem',
+            borderRadius: '12px',
+            maxWidth: '800px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflowY: 'auto',
+          },
+          overlay: {
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            zIndex: 1000,
+          },
+        }}
+      >
+        {selectedComp && <StartList competition={selectedComp} />}
+        <button onClick={closeModal} className={styles.closeButton}>
+          ×
+        </button>
+      </Modal>
     </div>
   );
 }

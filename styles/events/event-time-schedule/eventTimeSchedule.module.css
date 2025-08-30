@@ -66,7 +66,7 @@
 .linksBox {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 1rem;
   text-align: right;
   font-size: 0.95rem; /* slightly larger */
   flex-shrink: 0;
@@ -81,6 +81,29 @@
 
 .linksBox a:hover {
   opacity: 0.7;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: #000;
+}
+.closeButton:hover {
+  color: rgb(85, 82, 82);
+}
+
+/* Disabled Results Button */
+.disabledLink {
+  color: #999; /* gray out */
+  cursor: not-allowed;
+  pointer-events: none; /* prevents clicks */
+  opacity: 0.5;
 }
 
 /* === Responsive Styles === */
