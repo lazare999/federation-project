@@ -20,19 +20,20 @@ export async function POST(request) {
 
   try {
     const result = await client.messages.create(process.env.MAILGUN_DOMAIN, {
-      from: `Website Contact <contact@${process.env.MAILGUN_DOMAIN}>`,
+      from: `Website Contact <no-reply@${process.env.MAILGUN_DOMAIN}>`,
       to: ['lazare.osiashvili9@gmail.com'],
       subject: 'New Contact Form Submission',
       text: `
-        Name: ${name}
-        Phone: ${phone}
-        Email: ${email}
-        Message: ${message}
-      `,
+      Name: ${name}
+      Phone: ${phone}
+      Email: ${email}
+      Message: ${message}
+    `,
     });
 
     return NextResponse.json({ success: true, result });
   } catch (error) {
+    console.error('Mailgun Error:', error); // <-- see exact error
     return NextResponse.json(
       { error: 'Failed to send email', details: error.message },
       { status: 500 }
