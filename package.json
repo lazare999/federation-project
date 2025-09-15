@@ -9,6 +9,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@next/third-parties": "^15.5.3",
     "@tanstack/react-query": "^5.82.0",
     "axios": "^1.10.0",
     "firebase": "^11.7.3",
