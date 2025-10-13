@@ -65,7 +65,7 @@ export default function HorseDetailsClient({ horse }) {
           backgroundStyle={{
             backgroundColor: 'rgba(0,0,0,0.9)',
             zIndex: 9999,
-            fontFamily: 'initial',
+            fontFamily: 'Arial, Helvetica, sans-serif',
           }}
           closeOnClickOutside={true}
         />
