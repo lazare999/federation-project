@@ -22,7 +22,7 @@ export default function Footer() {
             <span>{t('contact.phoneLabel')}</span>593301414
           </p>
           <p>
-            <span>{t('contact.emailLabel')}</span>RUSOPITSKHELAURI@GMAIL.COM
+            <span>{t('contact.emailLabel')}</span>equegeo@gmail.com
           </p>
         </div>
 

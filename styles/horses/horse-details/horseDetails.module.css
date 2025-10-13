@@ -37,6 +37,10 @@
   cursor: pointer;
 }
 
+.ImageViewer {
+  font-family: Arial, sans-serif;
+}
+
 @media (max-width: 1900px) {
   .gallery {
     columns: 400px;

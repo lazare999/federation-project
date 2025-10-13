@@ -10,6 +10,15 @@ export default function EventResults({ event }) {
     event.competitions.length === 0 ||
     event.competitions.every((comp) => comp.results.length === 0);
 
+  // Helper to convert "HH:MM:SS" to decimal seconds (like 65.60)
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '-';
+    const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+    const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+    // Convert to decimal as in your example (round to 2 decimals)
+    return (totalSeconds / 60).toFixed(2);
+  };
+
   return (
     <div className={classes.resultsContainer}>
       <h2 className={classes.title}>{event.title.toUpperCase()}</h2>
@@ -49,7 +58,7 @@ export default function EventResults({ event }) {
                     <div>{result.rider_horse_entry.rider.name}</div>
                     <div>{result.rider_horse_entry.horse.name}</div>
                     <div>{result.faults}</div>
-                    <div>{result.time}</div>
+                    <div>{formatTime(result.time)}</div>
                   </div>
                 ))}
             </div>

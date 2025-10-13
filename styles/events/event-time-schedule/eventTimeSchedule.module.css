@@ -93,6 +93,7 @@
   top: 10px;
   right: 10px;
   color: #000;
+  font-family: initial;
 }
 .closeButton:hover {
   color: rgb(85, 82, 82);
