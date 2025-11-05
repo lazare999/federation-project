@@ -15,6 +15,10 @@ export default function EventCard({ event, onClick, isCarouselCard }) {
     }
   };
 
+  // ✅ Always use the first image in DB as cover
+  const coverImage =
+    event?.images?.length > 0 ? event.images[0] : '/placeholder.jpg';
+
   return (
     <div
       className={`${classes.card} ${
@@ -25,7 +29,7 @@ export default function EventCard({ event, onClick, isCarouselCard }) {
     >
       <div className={classes.imageWrapper}>
         <Image
-          src={event.image || '/placeholder.jpg'}
+          src={coverImage}
           alt={event.title}
           fill
           className={classes.image}
@@ -33,6 +37,7 @@ export default function EventCard({ event, onClick, isCarouselCard }) {
           priority
         />
       </div>
+
       <div className={classes.infoCard}>
         <h2 className={classes.title}>{event.title}</h2>
         <p className={classes.date}>{event.date}</p>

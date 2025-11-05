@@ -1,0 +1,55 @@
+/* Container for the events gallery */
+.eventGallery {
+  columns: 600px; /* Masonry layout */
+  column-gap: 10px; /* Space between columns */
+  padding: 2rem 0;
+  margin: 1rem;
+}
+
+/* Each gallery item */
+.galleryItem {
+  break-inside: avoid; /* Prevent items from breaking across columns */
+  margin-bottom: 10px;
+}
+
+.galleryItem img {
+  width: 100%;
+  height: auto;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: transform 0.3s ease;
+}
+
+.galleryItem img:hover {
+  transform: scale(1.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1900px) {
+  .eventGallery {
+    columns: 400px;
+  }
+}
+
+@media (max-width: 1300px) {
+  .eventGallery {
+    columns: 300px;
+  }
+}
+
+@media (max-width: 680px) {
+  .eventGallery {
+    columns: 200px;
+    text-align: center;
+    margin: inherit;
+  }
+}
+
+@media (max-width: 480px) {
+  .eventGallery {
+    columns: 150px;
+  }
+  .galleryItem img {
+    width: 190px;
+  }
+}

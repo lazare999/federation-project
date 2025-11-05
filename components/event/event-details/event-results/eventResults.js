@@ -31,7 +31,11 @@ export default function EventResults({ event }) {
 
       {!noResults &&
         event.competitions.map((competition) => (
-          <div key={competition.id} className={classes.resultSection}>
+          <div
+            key={competition.id}
+            id={`competition-${competition.id}`}
+            className={classes.resultSection}
+          >
             <p className={classes.classInfo}>{competition.name}</p>
             <p className={classes.date}>
               {t('results.start')}:{' '}
@@ -40,7 +44,6 @@ export default function EventResults({ event }) {
             </p>
 
             <div className={classes.table}>
-              {/* Header */}
               <div className={`${classes.row} ${classes.header}`}>
                 <div>{t('results.rank')}</div>
                 <div>{t('results.rider')}</div>
@@ -49,7 +52,6 @@ export default function EventResults({ event }) {
                 <div>{t('results.time')}</div>
               </div>
 
-              {/* Results */}
               {[...competition.results]
                 .sort((a, b) => a.place - b.place)
                 .map((result) => (

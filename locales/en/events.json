@@ -28,5 +28,28 @@
   "page": {
     "error": "Failed to load events",
     "noEvents": "No events found"
+  },
+  "form": {
+    "title": "Event Registration",
+    "riderName": "Rider Name",
+    "phone": "Phone Number",
+    "email": "Email",
+    "horseName": "Horse Name",
+    "class": "Class",
+    "selectClass": "Select Class",
+    "addHorse": "Add Horse",
+    "horseList": "Horses List",
+    "submit": "Submit",
+    "sending": "Sending...",
+    "success": "Successfully sent! We will contact you soon.",
+    "fail": "Failed to send form. Try again later.",
+    "error": "Error sending form.",
+    "unknownEvent": "Unknown Event"
+  },
+  "timer": {
+    "daysToGo": "days to go",
+    "eventDay": "Event day!",
+    "participantForm": "PARTICIPANT FORM",
+    "closeForm": "CLOSE FORM"
   }
 }

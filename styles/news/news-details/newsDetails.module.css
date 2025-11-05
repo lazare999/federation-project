@@ -30,6 +30,10 @@
   border-radius: 8px;
 }
 
+.date {
+  text-align: end !important;
+}
+
 /* Tablet adjustments */
 @media (max-width: 1024px) {
   .title {

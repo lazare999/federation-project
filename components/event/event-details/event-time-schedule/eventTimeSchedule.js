@@ -53,9 +53,8 @@ export default function EventTimeSchedule({ event, onShowResultsTab }) {
     return <div>{t('timeSchedule.noCompetitions')}</div>;
   }
 
-  function handleResultsClick() {
-    if (onShowResultsTab) onShowResultsTab(); // switch tab first
-    setScrollPending(true); // scroll after tab renders
+  function handleResultsClick(compId) {
+    if (onShowResultsTab) onShowResultsTab(compId);
   }
 
   return (
@@ -105,7 +104,7 @@ export default function EventTimeSchedule({ event, onShowResultsTab }) {
                 aria-disabled={!hasResults}
                 onClick={(e) => {
                   e.preventDefault();
-                  if (hasResults) handleResultsClick();
+                  if (hasResults) handleResultsClick(comp.id);
                 }}
               >
                 <span>{t('timeSchedule.results')}</span> →
