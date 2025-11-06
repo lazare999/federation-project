@@ -14,9 +14,9 @@ import resultsClasses from '@/styles/events/event-results/eventResults.module.cs
 
 import lgAutoplay from 'lightgallery/plugins/autoplay';
 import lgFullscreen from 'lightgallery/plugins/fullscreen';
-import lgThumbnail from 'lightgallery/plugins/thumbnail';
 import lgZoom from 'lightgallery/plugins/zoom';
 import { useTranslation } from 'react-i18next';
+// import lgThumbnail from 'lightgallery/plugins/thumbnail';
 
 export default function EventPhotos({ event }) {
   const { t } = useTranslation('events');
@@ -47,15 +47,15 @@ export default function EventPhotos({ event }) {
     <div className={classes.eventGallery}>
       <LightGallery
         onInit={onInit}
-        speed={500}
-        plugins={[lgThumbnail, lgZoom, lgFullscreen, lgAutoplay]}
-        thumbnail={true}
-        toggleThumb={true}
+        speed={400}
+        plugins={[lgZoom, lgFullscreen, lgAutoplay]}
         allowMediaOverlap={true}
+        zoomFromOrigin={false}
+        zoomMax={1.5}
       >
         {images.map((img, index) => (
           <a key={index} href={img.original} className={classes.galleryItem}>
-            <img src={img.thumb} alt={img.alt} />
+            <img src={img.thumb} alt={img.alt} loading="lazy" />
           </a>
         ))}
       </LightGallery>

@@ -1,22 +1,22 @@
-/* Container for the events gallery */
 .eventGallery {
-  columns: 600px; /* Masonry layout */
-  column-gap: 10px; /* Space between columns */
+  column-count: 4; /* how many columns you want on large screens */
+  column-gap: 12px; /* space between columns */
   padding: 2rem 0;
   margin: 1rem;
 }
 
 /* Each gallery item */
 .galleryItem {
-  break-inside: avoid; /* Prevent items from breaking across columns */
-  margin-bottom: 10px;
+  break-inside: avoid;
+  display: block;
+  margin-bottom: 12px;
 }
 
 .galleryItem img {
   width: 100%;
   height: auto;
-  cursor: pointer;
   border-radius: 5px;
+  cursor: pointer;
   transition: transform 0.3s ease;
 }
 
@@ -24,32 +24,16 @@
   transform: scale(1.05);
 }
 
-/* Responsive adjustments */
-@media (max-width: 1900px) {
+/* Responsive */
+
+@media (max-width: 1200px) {
   .eventGallery {
-    columns: 400px;
+    column-count: 3;
   }
 }
 
-@media (max-width: 1300px) {
+@media (max-width: 600px) {
   .eventGallery {
-    columns: 300px;
-  }
-}
-
-@media (max-width: 680px) {
-  .eventGallery {
-    columns: 200px;
-    text-align: center;
-    margin: inherit;
-  }
-}
-
-@media (max-width: 480px) {
-  .eventGallery {
-    columns: 150px;
-  }
-  .galleryItem img {
-    width: 190px;
+    column-count: 2;
   }
 }

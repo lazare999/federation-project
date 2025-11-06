@@ -21,16 +21,15 @@ export async function POST(request) {
   try {
     const horseListHtml =
       horses
-        ?.map((h, index) => `<li> ${h.horseName} (${h.horseClass})</li>`)
+        ?.map((h) => `<li>${h.horseName} (${h.horseClass})</li>`)
         .join('') || '<li>No horses added</li>';
 
     const horseListText =
-      horses
-        ?.map((h, index) => ` ${h.horseName} (${h.horseClass})`)
-        .join('\n') || 'No horses added';
+      horses?.map((h) => `${h.horseName} (${h.horseClass})`).join('\n') ||
+      'No horses added';
 
     const result = await client.messages.create(process.env.MAILGUN_DOMAIN, {
-      from: `Event Registration <noreply@${process.env.MAILGUN_DOMAIN}>`,
+      from: `Event Registration <contact@${process.env.MAILGUN_DOMAIN}>`,
       to: ['lazare.osiashvili9@gmail.com'],
       subject: 'New Event Participant Registration',
       text: `Rider Name: ${riderName}

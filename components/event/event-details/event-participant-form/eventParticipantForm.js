@@ -16,7 +16,10 @@ export default function EventParticipantForm({ event }) {
 
   const handleAddHorse = () => {
     if (horseName.trim() && horseClass.trim()) {
-      setHorses([...horses, { horseName, horseClass }]);
+      setHorses([
+        ...horses,
+        { horseName: horseName.trim(), horseClass: horseClass.trim() },
+      ]);
       setHorseName('');
       setHorseClass('');
     }
@@ -26,11 +29,20 @@ export default function EventParticipantForm({ event }) {
     e.preventDefault();
     setStatus(t('form.sending'));
 
+    // Include current horse input even if "Add Horse" wasn't clicked
+    const finalHorses = [...horses];
+    if (horseName.trim() && horseClass.trim()) {
+      finalHorses.push({
+        horseName: horseName.trim(),
+        horseClass: horseClass.trim(),
+      });
+    }
+
     const formData = {
       riderName,
       number,
       email,
-      horses,
+      horses: finalHorses,
       eventTitle: event?.title || t('form.unknownEvent'),
     };
 
@@ -43,6 +55,7 @@ export default function EventParticipantForm({ event }) {
 
       if (res.ok) {
         setStatus(t('form.success'));
+        // Reset all fields
         setRiderName('');
         setNumber('');
         setEmail('');

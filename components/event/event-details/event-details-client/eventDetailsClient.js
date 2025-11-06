@@ -24,9 +24,19 @@ export default function EventDetailsClient({ eventId }) {
     queryKey: ['event', eventId],
     queryFn: () => fetchEventById(eventId),
   });
-  console.log(event);
+
+  // ✅ Preload photos when event loads (runs once)
   useEffect(() => {
-    // Wait for tab to switch to "results" and then scroll
+    if (!event?.images || event.images.length <= 1) return;
+
+    event.images.slice(1).forEach((url) => {
+      const img = new Image();
+      img.src = url;
+    });
+  }, [event]);
+
+  // ✅ Scroll logic
+  useEffect(() => {
     if (activeTab === 'results' && scrollToCompId) {
       const el = document.getElementById(`competition-${scrollToCompId}`);
       if (el) {
@@ -35,7 +45,7 @@ export default function EventDetailsClient({ eventId }) {
         const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
         window.scrollTo({ top: y, behavior: 'smooth' });
       }
-      setScrollToCompId(null); // reset after scroll
+      setScrollToCompId(null);
     }
   }, [activeTab, scrollToCompId]);
 
@@ -43,9 +53,8 @@ export default function EventDetailsClient({ eventId }) {
   if (error) return <div>{t('details.error')}</div>;
   if (!event) return <div>{t('details.notFound')}</div>;
 
-  //  Determine if event is upcoming
   const isUpcoming = new Date(event.date) > new Date();
-  console.log(event.date);
+
   return (
     <div>
       {/* Time Schedule */}
@@ -76,6 +85,7 @@ export default function EventDetailsClient({ eventId }) {
         >
           {t('details.results')}
         </button>
+
         <button
           className={`${classes.button} ${
             activeTab === 'photos' ? classes.active : ''
@@ -86,7 +96,7 @@ export default function EventDetailsClient({ eventId }) {
         </button>
       </div>
 
-      {/* Tab content */}
+      {/* Content Switch */}
       {activeTab === 'results' ? (
         <div id="results-section">
           <EventResults event={event} />
