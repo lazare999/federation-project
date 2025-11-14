@@ -5,8 +5,17 @@ import './globals.css';
 import Providers from './providers';
 
 export const metadata = {
-  title: 'georgianequestrianfederation',
-  description: 'georgian equestiran federation official website',
+  title: 'Horses in Georgia | Georgian Equestrian Federation',
+  description:
+    'Official Georgian equestrian website featuring horses, stables, tours, showjumping events, and equestrian activities across Georgia.',
+  keywords: [
+    'horse in georgia',
+    'horses georgia',
+    'georgian equestrian federation',
+    'equestrian georgia',
+    'stables in georgia',
+    'horse tours georgia',
+  ],
 };
 
 export default function RootLayout({ children }) {

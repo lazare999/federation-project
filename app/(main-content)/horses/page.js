@@ -9,6 +9,28 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+export const metadata = {
+  title: 'Horses in Georgia | Stables, Breeds & Equestrian Info',
+  description:
+    'Explore horses in Georgia: stables, breeds, horse categories, riding information, and equestrian services across the country.',
+  keywords: [
+    'horse in georgia',
+    'horses georgia',
+    'georgian horses',
+    'stables in georgia',
+    'equestrian georgia',
+    'horse riding georgia',
+  ],
+  openGraph: {
+    title: 'Horses in Georgia',
+    description:
+      'Discover horses, stables, and equestrian services throughout Georgia.',
+    url: 'https://georgianequestrianfederation.ge/horses',
+    type: 'website',
+    siteName: 'Georgian Equestrian Federation',
+  },
+};
+
 export default function Horses() {
   const { i18n } = useTranslation('horses');
 
