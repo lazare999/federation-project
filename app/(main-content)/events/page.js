@@ -12,26 +12,6 @@ import classes from '@/styles/events/event-page/events.module.css';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-export const metadata = {
-  title: 'Equestrian Events Georgia | Showjumping & Competitions',
-  description:
-    'Find upcoming and previous equestrian events in Georgia, including showjumping competitions, tournaments, and federation events.',
-  keywords: [
-    'equestrian events georgia',
-    'horse events georgia',
-    'showjumping georgia',
-    'georgian equestrian federation events',
-    'horse competitions georgia',
-  ],
-  openGraph: {
-    title: 'Equestrian Events in Georgia',
-    description:
-      'Browse upcoming and past horse events and competitions in Georgia.',
-    url: 'https://georgianequestrianfederation.ge/events',
-    type: 'website',
-  },
-};
-
 export default function Events() {
   const { t } = useTranslation('events');
   const [selectedCategory, setSelectedCategory] = useState('all');
