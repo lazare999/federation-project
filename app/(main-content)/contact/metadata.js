@@ -2,6 +2,13 @@ export const metadata = {
   title: 'Contact Us | GeoEquestrian',
   description:
     'Get in touch with us for questions, partnerships, sponsorships, or equestrian information.',
+  keywords: [
+    'contact GeoEquestrian',
+    'equestrian contact',
+    'horse community Georgia',
+    'equestrian partnerships',
+    'horse sport support',
+  ],
   alternates: {
     canonical: '/contact',
   },

@@ -71,7 +71,10 @@ import axiosInstance from '@/utils/axiosInstance';
 // Fetch all horses
 export const getHorses = async () => {
   const res = await axiosInstance.get('horses/');
-  return res.data.filter((horse) => horse.is_active);
+
+  return res.data
+    .filter((horse) => horse.is_active)
+    .sort((a, b) => a.order - b.order);
 };
 
 // Fetch single horse by ID

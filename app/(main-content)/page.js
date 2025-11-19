@@ -38,6 +38,7 @@ export default function Home() {
           alt="Background"
           fill
           priority
+          fetchPriority="high"
           className={classes.backgroundImage}
         />
         <div className={classes.overlay} />

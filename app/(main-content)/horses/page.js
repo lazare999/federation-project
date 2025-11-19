@@ -21,6 +21,8 @@ export default function Horses() {
     queryFn: getHorses,
   });
 
+  console.log(horses);
+
   const [filteredHorses, setFilteredHorses] = useState([]);
 
   const handleFilter = ({ category, name }) => {

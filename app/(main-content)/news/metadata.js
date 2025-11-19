@@ -2,6 +2,13 @@ export const metadata = {
   title: 'Latest Equestrian News | GeoEquestrian',
   description:
     'Stay updated with the latest equestrian news in Georgia — competitions, events, stable updates, riders, and more.',
+  keywords: [
+    'equestrian news',
+    'horse news Georgia',
+    'showjumping news',
+    'horse events Georgia',
+    'equestrian updates',
+  ],
   alternates: {
     canonical: '/news',
   },

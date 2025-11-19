@@ -37,9 +37,18 @@ export default function RootLayout({ children }) {
           href="/dark-theme-icon.png"
           media="(prefers-color-scheme: dark)"
         />
+
         <link rel="apple-touch-icon" href="/light-theme-icon.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        {/* ⭐ Recommended Next.js way to improve CSS loading */}
+        <link
+          rel="stylesheet"
+          href="/_next/static/css/app/layout.css"
+          precedence="high"
+        />
       </head>
+
       <body>
         <Providers>
           <div className="pageWrapper">
@@ -48,6 +57,7 @@ export default function RootLayout({ children }) {
             <Footer />
           </div>
         </Providers>
+
         <GoogleAnalytics gaId="G-FQNGSWF2R9" />
       </body>
     </html>

@@ -1,6 +1,7 @@
 'use client';
 
 import { getSponsors } from '@/actions/sponsor-actions/sponsorActions';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -15,19 +16,24 @@ export default function SponsorsList() {
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    const fetchSponsors = async () => {
+    let isMounted = true;
+
+    const loadSponsors = async () => {
       try {
-        const sponsorsFromDB = await getSponsors();
-        setSponsors(sponsorsFromDB);
-      } catch (error) {
-        console.error(t('error'), error);
+        const data = await getSponsors();
+        if (isMounted) setSponsors(data || []);
+      } catch (err) {
+        console.error(t('error'), err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
-    fetchSponsors();
-  }, [t]);
+    loadSponsors();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   if (loading) return <Loader message={t('loading')} />;
 
@@ -35,8 +41,9 @@ export default function SponsorsList() {
     <section className={classes.container}>
       <h2 className={classes.heading}>{t('page.title')}</h2>
       <div className={classes.underline}></div>
+
       <div className={classes.grid}>
-        {sponsors.map((sponsor) => (
+        {sponsors?.map((sponsor) => (
           <a
             key={sponsor.id}
             href={sponsor.link}
@@ -44,7 +51,14 @@ export default function SponsorsList() {
             rel="noopener noreferrer"
             className={classes.card}
           >
-            <img src={sponsor.image} alt={sponsor.name} />
+            <Image
+              src={sponsor.image}
+              alt={sponsor.name || 'Sponsor'}
+              width={300}
+              height={200}
+              className={classes.image}
+              unoptimized
+            />
           </a>
         ))}
       </div>

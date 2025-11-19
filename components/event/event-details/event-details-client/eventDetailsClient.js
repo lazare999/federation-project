@@ -29,9 +29,19 @@ export default function EventDetailsClient({ eventId }) {
   useEffect(() => {
     if (!event?.images || event.images.length <= 1) return;
 
+    let loadedCount = 0;
+    const total = event.images.length - 1;
+
     event.images.slice(1).forEach((url) => {
-      const img = new Image();
+      const img = new window.Image();
       img.src = url;
+
+      img.onload = img.onerror = () => {
+        loadedCount++;
+        if (loadedCount === total) {
+          console.log('All event images preloaded!');
+        }
+      };
     });
   }, [event]);
 
@@ -102,7 +112,7 @@ export default function EventDetailsClient({ eventId }) {
           <EventResults event={event} />
         </div>
       ) : (
-        <EventPhotos event={event} />
+        <EventPhotos images={event.images} />
       )}
     </div>
   );
