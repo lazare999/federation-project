@@ -24,6 +24,7 @@ export default function EventPhotos({ images }) {
   // ✅ skip cover image and map to gallery objects
   const photos = images?.slice(1)?.map((url) => ({
     original: url,
+    thumb: url + '?w=400&q=70', // optimized thumbnail
     alt: 'Event photo', // no event.title, just generic alt
   }));
 
