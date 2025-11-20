@@ -1,16 +1,20 @@
-// components/event/start-list/StartList.js
 'use client';
 
 import classes from '@/styles/events/start-list/startList.module.css';
 
 export default function StartList({ competition }) {
-  if (!competition?.rider_horse_entries?.length) {
+  const entries = competition?.rider_horse_entries;
+
+  if (!entries?.length) {
     return (
       <p className={classes.noEntriesMessage}>
         No riders registered for this competition.
       </p>
     );
   }
+
+  // Sort by order (ascending)
+  const sortedEntries = [...entries].sort((a, b) => a.order - b.order);
 
   return (
     <div className={classes.startListContainer}>
@@ -25,7 +29,7 @@ export default function StartList({ competition }) {
         </div>
 
         {/* Table Rows */}
-        {competition.rider_horse_entries.map((entry, index) => (
+        {sortedEntries.map((entry, index) => (
           <div key={entry.id} className={classes.row}>
             <div>{index + 1}</div>
             <div>{entry.rider.name}</div>
