@@ -25,14 +25,14 @@ export default function EventDetailsClient({ eventId }) {
     queryFn: () => fetchEventById(eventId),
   });
 
-  // ✅ Preload photos when event loads (runs once)
+  // Preload ALL event images fast
   useEffect(() => {
-    if (!event?.images || event.images.length <= 1) return;
+    if (!event?.images || event.images.length === 0) return;
 
     let loadedCount = 0;
-    const total = event.images.length - 1;
+    const total = event.images.length;
 
-    event.images.slice(1).forEach((url) => {
+    event.images.forEach((url) => {
       const img = new window.Image();
       img.src = url;
 
@@ -43,7 +43,7 @@ export default function EventDetailsClient({ eventId }) {
         }
       };
     });
-  }, [event]);
+  }, [eventId, event?.images]);
 
   // ✅ Scroll logic
   useEffect(() => {

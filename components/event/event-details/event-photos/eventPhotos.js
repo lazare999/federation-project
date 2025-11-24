@@ -21,11 +21,11 @@ import { useTranslation } from 'react-i18next';
 export default function EventPhotos({ images }) {
   const { t } = useTranslation('events');
 
-  // ✅ skip cover image and map to gallery objects
-  const photos = images?.slice(1)?.map((url) => ({
+  // ✅ Use ALL images — no skipping
+  const photos = images?.map((url) => ({
     original: url,
-    thumb: url + '?w=400&q=70', // optimized thumbnail
-    alt: 'Event photo', // no event.title, just generic alt
+    thumb: url + '?w=400&q=70',
+    alt: 'Event photo',
   }));
 
   if (!photos || photos.length === 0) {

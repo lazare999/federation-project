@@ -15,9 +15,8 @@ export default function EventCard({ event, onClick, isCarouselCard }) {
     }
   };
 
-  // ✅ Always use the first image in DB as cover
-  const coverImage =
-    event?.images?.length > 0 ? event.images[0] : '/placeholder.jpg';
+  // ✅ Use ONLY cover_image from DB
+  const coverImage = event?.cover_image || '/placeholder.jpg';
 
   return (
     <div
