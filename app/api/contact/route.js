@@ -22,7 +22,7 @@ export async function POST(request) {
     const result = await client.messages.create(
       process.env.MAILGUN_DOMAIN, // Use your **verified domain**, e.g., georgianequestrianfederation.ge
       {
-        from: `New notification from contact page <contact@${process.env.MAILGUN_DOMAIN}>`,
+        from: `New notification from contact page <info@${process.env.MAILGUN_DOMAIN}>`,
         to: ['lazare.osiashvili9@gmail.com'], // Your email
         subject: 'New Contact Form Submission',
         text: `Name: ${name}\nPhone: ${phone}\nEmail: ${email}\nMessage: ${message}`,
