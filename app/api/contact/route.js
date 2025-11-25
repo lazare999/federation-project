@@ -1,5 +1,3 @@
-export const runtime = 'nodejs';
-
 import formData from 'form-data';
 import Mailgun from 'mailgun.js';
 import { NextResponse } from 'next/server';
@@ -17,22 +15,24 @@ export async function POST(request) {
   const mg = new Mailgun(formData);
   const client = mg.client({
     username: 'api',
-    key: process.env.MAILGUN_API_KEY, // Use your **private key**
+    key: process.env.MAILGUN_API_KEY, // private key from env
   });
 
   try {
     const result = await client.messages.create(
-      process.env.MAILGUN_DOMAIN, // Use your **verified domain**, e.g., georgianequestrianfederation.ge
+      'georgianequestrianfederation.ge', // verified domain
       {
-        from: `New notification from contact page <contact@${process.env.MAILGUN_DOMAIN}>`,
-        to: ['lazare.osiashvili9@gmail.com'], // Your email
+        from: 'New contact form <contact@georgianequestrianfederation.ge>', // hardcoded
+        to: ['lazare.osiashvili9@gmail.com'], // hardcoded
         subject: 'New Contact Form Submission',
         text: `Name: ${name}\nPhone: ${phone}\nEmail: ${email}\nMessage: ${message}`,
-        html: `<p><strong>Name:</strong> ${name}</p>
-               <p><strong>Phone:</strong> ${phone}</p>
-               <p><strong>Email:</strong> ${email}</p>
-               <p><strong>Message:</strong><br>${message}</p>`,
-        'h:Reply-To': email, // So replies go to the user
+        html: `
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Phone:</strong> ${phone}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Message:</strong><br>${message}</p>
+        `,
+        'h:Reply-To': email, // reply goes to user
       }
     );
 
@@ -42,8 +42,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         error: 'Failed to send email',
-        details: error.message,
-        stack: error.stack,
+        details: JSON.stringify(error, Object.getOwnPropertyNames(error)),
       },
       { status: 500 }
     );
