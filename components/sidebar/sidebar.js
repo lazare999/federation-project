@@ -66,7 +66,7 @@ export default function Sidebar({ isMenuOpen, setIsMenuOpen }) {
           </Link>
 
           <a
-            href="/demo-pdf/demo-pdf.pdf"
+            href="/rules-pdf/rules-2025.pdf"
             target="_blank"
             rel="noopener noreferrer"
           >
