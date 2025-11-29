@@ -23,7 +23,7 @@ export async function POST(request) {
       'georgianequestrianfederation.ge', // verified domain
       {
         from: 'New contact form <contact@georgianequestrianfederation.ge>', // hardcoded
-        to: ['lazare.osiashvili9@gmail.com'], // hardcoded
+        to: ['lazare.osiashvili9@gmail.com', 'equegeo@gmail.com'], // hardcoded
         subject: 'New Contact Form Submission',
         text: `Name: ${name}\nPhone: ${phone}\nEmail: ${email}\nMessage: ${message}`,
         html: `
