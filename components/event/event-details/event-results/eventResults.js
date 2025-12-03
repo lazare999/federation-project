@@ -11,12 +11,9 @@ export default function EventResults({ event }) {
     event.competitions.every((comp) => comp.results.length === 0);
 
   // Helper to convert "HH:MM:SS" to decimal seconds (like 65.60)
-  const formatTime = (timeStr) => {
-    if (!timeStr) return '-';
-    const [hours, minutes, seconds] = timeStr.split(':').map(Number);
-    const totalSeconds = hours * 3600 + minutes * 60 + seconds;
-    // Convert to decimal as in your example (round to 2 decimals)
-    return (totalSeconds / 60).toFixed(2);
+  const formatTime = (value) => {
+    if (value === null || value === undefined) return '-';
+    return Number(value).toFixed(2);
   };
 
   return (
