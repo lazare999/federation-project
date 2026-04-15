@@ -2,7 +2,7 @@ import i18n from '@/lib/i18n/i18n';
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://equestrian-app.onrender.com/api/',
+  baseURL: 'https://web-production-42b8c.up.railway.app/api',
 });
 
 axiosInstance.interceptors.request.use((config) => {
