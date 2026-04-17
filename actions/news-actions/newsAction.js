@@ -41,8 +41,8 @@ export const getAllNews = async () => {
 };
 
 export const fetchNewsById = async (id) => {
-  const newsItems = await getAllNews();
-  const news = newsItems.find((n) => n.id === Number(id));
-  if (!news) throw new Error('News not found');
-  return news;
+  if (!id) throw new Error('News ID is missing');
+
+  const res = await axiosInstance.get(`/news/${id}/`);
+  return res.data;
 };

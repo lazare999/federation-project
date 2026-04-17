@@ -66,35 +66,20 @@
 //   }
 // };
 
-import axios from "axios";
-import axiosInstance from "@/utils/axiosInstance";
+import axiosInstance from '@/utils/axiosInstance';
 
 // Fetch all horses
 export const getHorses = async () => {
-  try {
-    const res = await axiosInstance.get("horses/");
+  const res = await axiosInstance.get('horses/');
 
-    return res.data
-      .filter((horse) => horse?.is_active)
-      .sort((a, b) => a.order - b.order);
-  } catch (error) {
-    console.error("Failed to fetch horses:", error);
-    return []; // NEVER break build
-  }
+  return res.data
+    .filter((horse) => horse.is_active)
+    .sort((a, b) => a.order - b.order);
 };
 
-// Fetch single horse by ID (SAFE)
+// Fetch single horse by ID
 export const fetchHorseById = async (id) => {
-  try {
-    const res = await axiosInstance.get(`horses/${id}`);
-    return res.data;
-  } catch (error) {
-    // handle 404 safely
-    if (axios.isAxiosError(error) && error.response?.status === 404) {
-      return null;
-    }
-
-    console.error("Failed to fetch horse:", error);
-    throw error;
-  }
+  const res = await axiosInstance.get(`horses/${id}/`);
+  if (!res.data) throw new Error('Horse not found');
+  return res.data;
 };

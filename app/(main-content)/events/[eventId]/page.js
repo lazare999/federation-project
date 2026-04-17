@@ -10,8 +10,8 @@ export async function generateStaticParams() {
   }));
 }
 
-export default function EventDetailsPage({ params }) {
-  const { eventId } = params;
+export default async function EventDetailsPage({ params }) {
+  const { eventId } = await params; // ✅ FIX
 
   return <EventDetailsClient eventId={eventId} />;
 }

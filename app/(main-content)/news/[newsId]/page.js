@@ -10,6 +10,7 @@ export async function generateStaticParams() {
 }
 
 export default async function NewsDetailsPage({ params }) {
-  const newsId = params?.newsId;
+  const { newsId } = await params; // ✅ FIX
+
   return <NewsDetailsClient newsId={newsId} />;
 }
