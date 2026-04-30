@@ -42,9 +42,12 @@
     "submit": "Submit",
     "sending": "Sending...",
     "success": "Successfully sent! We will contact you soon.",
+    "successPartial": "Your email was sent, but the registration was not saved to the database. The site needs a valid Firebase service account on the server (see hosting env FIREBASE_SERVICE_ACCOUNT_JSON).",
     "fail": "Failed to send form. Try again later.",
     "error": "Error sending form.",
-    "unknownEvent": "Unknown Event"
+    "timeout": "Request took too long. Check your connection and try again.",
+    "unknownEvent": "Unknown Event",
+    "equestrianClub": "Equestrian Club"
   },
   "timer": {
     "daysToGo": "days to go",

@@ -2,65 +2,77 @@ import formData from 'form-data';
 import Mailgun from 'mailgun.js';
 import { NextResponse } from 'next/server';
 
+export const runtime = 'nodejs';
+
 export async function POST(request) {
-  const { riderName, number, email, horses } = await request.json();
-
-  // Validate required fields
-  if (!riderName || !email || !number) {
-    return NextResponse.json(
-      { error: 'Missing required fields' },
-      { status: 400 }
-    );
-  }
-
-  const mg = new Mailgun(formData);
-  const client = mg.client({
-    username: 'api',
-    key: process.env.MAILGUN_API_KEY, // Only environment variable needed
-  });
-
   try {
-    // Build horses list
-    const horseListHtml =
-      horses
-        ?.map((h) => `<li>${h.horseName} (${h.horseClass})</li>`)
-        .join('') || '<li>No horses added</li>';
-    const horseListText =
-      horses?.map((h) => `${h.horseName} (${h.horseClass})`).join('\n') ||
-      'No horses added';
+    const { riderName, number, email, horses } = await request.json();
 
-    // Send email
+    if (!riderName || !email) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    if (!process.env.MAILGUN_API_KEY) {
+      return NextResponse.json(
+        { error: 'Mailgun not configured' },
+        { status: 500 }
+      );
+    }
+
+    const mg = new Mailgun(formData);
+    const client = mg.client({
+      username: 'api',
+      key: process.env.MAILGUN_API_KEY,
+    });
+
+    const horseList =
+      horses?.map((h) => `${h.horseName} (${h.competitionId})`).join('\n') ||
+      'No horses';
+
     const result = await client.messages.create(
       'georgianequestrianfederation.ge',
       {
-        // verified domain
-        from: 'Event Registration <contact@georgianequestrianfederation.ge>', // hardcoded
-        to: ['lazare.osiashvili9@gmail.com'], // hardcoded recipient
-        subject: 'New Event Participant Registration',
-        text: `Rider Name: ${riderName}
+        from: 'Georgian Equestrian Federation <contact@georgianequestrianfederation.ge>',
+        to: ['lazare.osiashvili9@gmail.com'],
+        subject: `New registration: ${riderName}`,
+
+        text: `
+New Event Registration
+
+Rider: ${riderName}
 Phone: ${number}
 Email: ${email}
+
 Horses:
-${horseListText}`,
+${horseList}
+        `,
+
         html: `
-        <h2>New Event Participant Registration</h2>
-        <p><strong>Rider Name:</strong> ${riderName}</p>
-        <p><strong>Phone:</strong> ${number}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <h3>Horses:</h3>
-        <ol>${horseListHtml}</ol>
-      `,
-        'h:Reply-To': email, // reply goes to participant
+          <h2>New Registration</h2>
+          <p><b>Rider:</b> ${riderName}</p>
+          <p><b>Phone:</b> ${number}</p>
+          <p><b>Email:</b> ${email}</p>
+          <h3>Horses</h3>
+          <pre>${horseList}</pre>
+        `,
+
+        'h:Reply-To': email,
       }
     );
 
-    return NextResponse.json({ success: true, result });
+    console.log('MAILGUN SUCCESS:', result);
+
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Mailgun Error Full:', error);
+    console.error('MAILGUN ERROR:', error);
+
     return NextResponse.json(
       {
-        error: 'Failed to send email',
-        details: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+        error: 'Email failed',
+        details: error?.message || error,
       },
       { status: 500 }
     );

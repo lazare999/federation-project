@@ -111,3 +111,49 @@
   font-size: 14px;
   color: #444;
 }
+
+.field {
+  position: relative;
+}
+
+/* dropdown container */
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+
+  margin-top: 5px;
+  padding: 0;
+  list-style: none;
+
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+
+  max-height: 200px;
+  overflow-y: auto;
+
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+}
+
+/* each item */
+.suggestions li {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+
+  transition: background 0.2s ease;
+}
+
+/* hover effect */
+.suggestions li:hover {
+  background-color: #f3f4f6;
+}
+
+/* active feel (optional future support) */
+.suggestions li:active {
+  background-color: #e5e7eb;
+}
