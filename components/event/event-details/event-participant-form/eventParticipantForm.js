@@ -303,11 +303,21 @@ export default function EventParticipantForm({ event }) {
           className={classes.select}
         >
           <option value="">Select class</option>
-          {event?.competitions?.map((comp) => (
-            <option key={comp.id} value={comp.id}>
-              {comp.name}
-            </option>
-          ))}
+          {event?.competitions?.map((comp) => {
+            const formattedDate = new Date(comp.date).toLocaleDateString(
+              'en-US',
+              {
+                month: 'short', // "May"
+                day: 'numeric', // "9"
+              }
+            );
+
+            return (
+              <option key={comp.id} value={comp.id}>
+                {comp.name} ({formattedDate})
+              </option>
+            );
+          })}
         </select>
       </div>
 
