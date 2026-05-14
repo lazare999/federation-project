@@ -2,7 +2,7 @@
 
 import styles from '@/styles/events/event-time-schedule/eventTimeSchedule.module.css';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from 'react-modal';
 import StartList from '../start-list-modal/startList';
@@ -14,9 +14,22 @@ if (typeof window !== 'undefined') {
 
 export default function EventTimeSchedule({ event, onShowResultsTab }) {
   const { t } = useTranslation('events');
+
   const [modalIsOpen, setIsOpen] = useState(false);
   const [selectedComp, setSelectedComp] = useState(null);
-  const [scrollPending, setScrollPending] = useState(false); // flag to scroll after tab switch
+  const [scrollPending, setScrollPending] = useState(false);
+
+  // SORT competitions by date + start_time
+  const sortedCompetitions = useMemo(() => {
+    if (!event?.competitions) return [];
+
+    return [...event.competitions].sort((a, b) => {
+      const dateA = new Date(`${a.date}T${a.start_time}`);
+      const dateB = new Date(`${b.date}T${b.start_time}`);
+
+      return dateA - dateB;
+    });
+  }, [event?.competitions]);
 
   function openModal(comp) {
     setSelectedComp(comp);
@@ -30,18 +43,25 @@ export default function EventTimeSchedule({ event, onShowResultsTab }) {
 
   function scrollToResults() {
     const resultsElement = document.getElementById('results-section');
+
     if (resultsElement) {
-      const header = document.querySelector('header'); // your fixed header selector
-      const yOffset = header ? -header.offsetHeight : -80; // use header height if available
+      const header = document.querySelector('header');
+
+      const yOffset = header ? -header.offsetHeight : -80;
+
       const y =
         resultsElement.getBoundingClientRect().top +
         window.pageYOffset +
         yOffset;
-      window.scrollTo({ top: y, behavior: 'smooth' });
+
+      window.scrollTo({
+        top: y,
+        behavior: 'smooth',
+      });
     }
   }
 
-  // useEffect to scroll after tab switch
+  // scroll after tab switch
   useEffect(() => {
     if (scrollPending) {
       scrollToResults();
@@ -49,19 +69,23 @@ export default function EventTimeSchedule({ event, onShowResultsTab }) {
     }
   }, [scrollPending]);
 
-  if (!event || !event.competitions?.length) {
+  if (!event || !sortedCompetitions.length) {
     return <div>{t('timeSchedule.noCompetitions')}</div>;
   }
 
   function handleResultsClick(compId) {
-    if (onShowResultsTab) onShowResultsTab(compId);
+    if (onShowResultsTab) {
+      onShowResultsTab(compId);
+    }
   }
 
   return (
     <div className={styles.scheduleContainer}>
-      {event.competitions.map((comp) => {
+      {sortedCompetitions.map((comp) => {
         const dateObj = new Date(comp.date);
+
         const day = String(dateObj.getDate()).padStart(2, '0');
+
         const month = dateObj
           .toLocaleString('en-US', { month: 'short' })
           .toUpperCase();
@@ -72,14 +96,19 @@ export default function EventTimeSchedule({ event, onShowResultsTab }) {
           <div key={comp.id} className={styles.scheduleItem}>
             <div className={styles.dateBox}>
               <div className={styles.dateNumber}>{day}</div>
+
               <div className={styles.dateMonth}>{month}</div>
             </div>
 
             <div className={styles.detailsBox}>
               <h3 className={styles.eventTitle}>{comp.name}</h3>
+
               <p className={styles.eventPresenter}>
                 {t('timeSchedule.presentedBy')}
               </p>
+
+              {/* Optional start time */}
+              {/* <p className={styles.startTime}>{comp.start_time?.slice(0, 5)}</p> */}
             </div>
 
             <div className={styles.linksBox}>
@@ -104,7 +133,10 @@ export default function EventTimeSchedule({ event, onShowResultsTab }) {
                 aria-disabled={!hasResults}
                 onClick={(e) => {
                   e.preventDefault();
-                  if (hasResults) handleResultsClick(comp.id);
+
+                  if (hasResults) {
+                    handleResultsClick(comp.id);
+                  }
                 }}
               >
                 <span>{t('timeSchedule.results')}</span> →
@@ -133,6 +165,7 @@ export default function EventTimeSchedule({ event, onShowResultsTab }) {
             maxHeight: '80vh',
             overflowY: 'auto',
           },
+
           overlay: {
             backgroundColor: 'rgba(0,0,0,0.6)',
             zIndex: 1000,
@@ -140,6 +173,7 @@ export default function EventTimeSchedule({ event, onShowResultsTab }) {
         }}
       >
         {selectedComp && <StartList competition={selectedComp} />}
+
         <button onClick={closeModal} className={styles.closeButton}>
           ×
         </button>
