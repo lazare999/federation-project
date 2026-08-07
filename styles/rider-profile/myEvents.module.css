@@ -1,0 +1,554 @@
+.eventsSection {
+  margin-top: 2rem;
+}
+
+.sectionBlock {
+  margin-bottom: 2rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.sectionCount {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.empty {
+  padding: 1.25rem;
+  text-align: center;
+  color: #666;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+  background: #fafafa;
+  font-size: 0.9rem;
+}
+
+.eventList {
+  display: grid;
+  gap: 1rem;
+}
+
+.eventCard {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 1rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fff;
+}
+
+.eventCardNoImage {
+  grid-template-columns: 1fr;
+}
+
+.cover {
+  width: 120px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #eee;
+}
+
+.coverPlaceholder {
+  width: 120px;
+  height: 80px;
+  border-radius: 6px;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.eventBody {
+  min-width: 0;
+}
+
+.eventTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+}
+
+.eventTitleLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.eventTitleLink:hover {
+  text-decoration: underline;
+}
+
+.eventMeta {
+  font-size: 0.875rem;
+  color: #555;
+  margin: 0.15rem 0;
+}
+
+.eventDescription {
+  font-size: 0.875rem;
+  color: #444;
+  margin: 0.5rem 0 0;
+  line-height: 1.45;
+}
+
+.registeredBadge {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: #dcfce7;
+  color: #166534;
+}
+
+.unpaidBadge,
+.paidBadge {
+  display: inline-block;
+  margin-left: 0.45rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+.unpaidBadge {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.paidBadge {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.entryFee {
+  color: #555;
+}
+
+.unpaidSummary {
+  margin-top: 0.65rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.unpaidSummaryLabel {
+  color: #666;
+}
+
+.unpaidSummaryAmount {
+  color: #9a3412;
+}
+
+.paySection {
+  margin-top: 0.75rem;
+}
+
+.payBtn {
+  padding: 0.55rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  background: #166534;
+  color: #fff;
+}
+
+.payBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.payBtn:hover:not(:disabled) {
+  background: #14532d;
+}
+
+.competitionFee {
+  font-size: 0.8rem;
+  color: #444;
+  font-weight: 600;
+}
+
+.eventCardHighlight {
+  border-color: #86efac;
+  box-shadow: 0 0 0 1px #86efac;
+}
+
+.entries {
+  margin-top: 0.65rem;
+  padding-left: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.entries li {
+  margin-bottom: 0;
+}
+
+.entryItem {
+  margin-bottom: 0 !important;
+}
+
+.entryCard {
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 0.7rem 0.8rem;
+  background: #fafafa;
+}
+
+.entryCardHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-bottom: 0.2rem;
+}
+
+.entryBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.entryHorse {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.entryCompetition {
+  margin: 0 0 0.45rem;
+  color: #333;
+  font-size: 0.875rem;
+}
+
+.entryDetails {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.entryDetailRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.entryDetailLabel {
+  color: #666;
+}
+
+.entryDetailValue {
+  color: #111;
+  text-align: right;
+  font-weight: 500;
+}
+
+.entryResult {
+  color: #666;
+}
+
+.entryFee {
+  color: #555;
+}
+
+.competitionHeight {
+  font-size: 0.8rem;
+  color: #444;
+  background: #f3f4f6;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.entryActions {
+  margin-top: 0.35rem;
+  margin-left: -0.15rem;
+}
+
+.entryActionBtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.entryActionBtn {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.8rem;
+  background: #fff;
+  cursor: pointer;
+  color: #333;
+}
+
+.entryActionBtn:hover:not(:disabled) {
+  border-color: #888;
+  background: #f5f5f5;
+}
+
+.entryActionBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.entryActionBtnDanger {
+  border-color: #f1c0c0;
+  color: #b91c1c;
+}
+
+.entryActionBtnDanger:hover:not(:disabled) {
+  border-color: #b91c1c;
+  background: #fef2f2;
+}
+
+.entryActionBtnPrimary {
+  border: 1px solid #111;
+  border-radius: 6px;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.8rem;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+}
+
+.entryActionBtnPrimary:hover:not(:disabled) {
+  background: #333;
+}
+
+.entryActionBtnPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.changeHorsePanel {
+  margin-top: 0.25rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.entryLockedHint {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: #666;
+  font-style: italic;
+}
+
+.loading {
+  padding: 1rem;
+  text-align: center;
+  color: #666;
+}
+
+.error {
+  color: #b91c1c;
+  font-size: 0.875rem;
+}
+
+.success {
+  color: #166534;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.registrationSection {
+  margin-top: 0.85rem;
+}
+
+.toggleRegistrationBtn {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.toggleRegistrationBtn:hover {
+  background: #f5f5f5;
+}
+
+.registrationPanel {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #eee;
+  display: grid;
+  gap: 1rem;
+}
+
+.competitionRow {
+  padding: 0.75rem;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.competitionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.competitionName {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.tourLevel {
+  font-size: 0.8rem;
+  color: #666;
+  background: #eee;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+}
+
+.competitionMeta {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0 0 0.5rem;
+}
+
+.competitionHint {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0.35rem 0;
+  font-style: italic;
+}
+
+.horsePick {
+  margin-top: 0.35rem;
+}
+
+.horsePickLabel {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 0.4rem;
+}
+
+.horseOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.horseOption {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.85rem;
+  background: #fff;
+  cursor: pointer;
+}
+
+.horseOption:hover {
+  border-color: #888;
+}
+
+.horseOptionSelected {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+
+.horseOptionBlocked {
+  opacity: 0.55;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.slotsHint {
+  font-size: 0.8rem;
+  color: #555;
+  margin: 0 0 0.45rem;
+}
+
+.selectionHint {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  color: #444;
+}
+
+.enteredList {
+  display: grid;
+  gap: 0.2rem;
+  margin-bottom: 0.45rem;
+}
+
+.registeredInline {
+  font-size: 0.875rem;
+  color: #166534;
+  font-weight: 500;
+  margin: 0.25rem 0 0;
+}
+
+.registerBtn {
+  margin-top: 0.5rem;
+  padding: 0.55rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  background: #111;
+  color: #fff;
+}
+
+.registerBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.registerBlockedBanner {
+  margin-top: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #f0d9a8;
+  border-radius: 6px;
+  background: #fffbeb;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.registerBlockedReason {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #92400e;
+  line-height: 1.4;
+}
+
+@media (max-width: 600px) {
+  .eventCard {
+    grid-template-columns: 1fr;
+  }
+
+  .cover,
+  .coverPlaceholder {
+    width: 100%;
+    height: 140px;
+  }
+}

@@ -40,13 +40,6 @@ export default function RootLayout({ children }) {
 
         <link rel="apple-touch-icon" href="/light-theme-icon.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-        {/* ⭐ Recommended Next.js way to improve CSS loading */}
-        <link
-          rel="stylesheet"
-          href="/_next/static/css/app/layout.css"
-          precedence="high"
-        />
       </head>
 
       <body>

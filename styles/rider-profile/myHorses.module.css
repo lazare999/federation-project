@@ -1,0 +1,520 @@
+.horsesSection {
+  margin-top: 2rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: #666;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.horseGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.horseCard {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fff;
+}
+
+.horseImage {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  background: #eee;
+}
+
+.horseImagePlaceholder {
+  width: 100%;
+  height: 140px;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.horseName {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.horseNameRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.horseCardPending {
+  border-color: #f0d9a8;
+  background: #fffdf8;
+}
+
+.statusBadgePendingAdd,
+.statusBadgePendingRemoval {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.statusBadgePendingAdd {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.statusBadgePendingRemoval {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.horseMeta {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+}
+
+.horseMetaRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.horseMetaLabel {
+  color: #666;
+}
+
+.horseMetaValue {
+  color: #111;
+  text-align: right;
+}
+
+.addFormCard {
+  margin-top: 1rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 1.25rem;
+  background: #fff;
+}
+
+.addFormTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.panelHint {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: #555;
+  line-height: 1.45;
+}
+
+.composerSection {
+  margin-top: 1.15rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.composerSection:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.composerSectionHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.composerSubtitle {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.composerSectionHeader .composerSubtitle {
+  margin-bottom: 0;
+}
+
+.basketList {
+  list-style: none;
+  margin: 0 0 0.85rem;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.basketItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.basketMain {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.entryActionBtnDanger {
+  border: 1px solid #f1c0c0;
+  border-radius: 6px;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.8rem;
+  background: #fff;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+.entryActionBtnDanger:hover:not(:disabled) {
+  border-color: #b91c1c;
+  background: #fef2f2;
+}
+
+.entryActionBtnDanger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.formGrid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.formField {
+  margin-bottom: 0.75rem;
+}
+
+.formField label {
+  display: block;
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 0.25rem;
+}
+
+.formField input,
+.formField select,
+.formField textarea {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.95rem;
+}
+
+.formField textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.required {
+  color: #b91c1c;
+}
+
+.formActions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  padding: 0.55rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+}
+
+.primaryBtn {
+  background: #111;
+  color: #fff;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondaryBtn {
+  background: #fff;
+  border: 1px solid #ccc;
+}
+
+.secondaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #b91c1c;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.success {
+  color: #166534;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.mutedText {
+  color: #666;
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+}
+
+.loading {
+  padding: 1rem;
+  text-align: center;
+  color: #666;
+}
+
+.inactiveBadge {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pendingRemovalBadge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.horseCardFooter {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.removeHorseBtn {
+  margin-left: auto;
+  border: 1px solid #f1c0c0;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  background: #fff;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+.removeHorseBtn:hover:not(:disabled) {
+  border-color: #b91c1c;
+  background: #fef2f2;
+}
+
+.removeHorseBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.fieldHint {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.searchResults {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.searchResultItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.searchResultMain {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.searchResultName {
+  font-size: 0.95rem;
+}
+
+.searchResultMeta {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.claimsBlock {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #eee;
+}
+
+.claimsHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.claimsTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.claimsFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.filterChip {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.8rem;
+  background: #fff;
+  cursor: pointer;
+}
+
+.filterChip:hover {
+  border-color: #888;
+}
+
+.filterChipActive {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+
+.claimsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.claimItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.claimMain {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.claimNote {
+  font-size: 0.85rem;
+  color: #444;
+}
+
+.statusBadge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: #eee;
+  color: #444;
+}
+
+.statusPending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.statusApproved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusRejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+@media (max-width: 600px) {
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

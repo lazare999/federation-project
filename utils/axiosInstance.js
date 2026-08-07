@@ -1,8 +1,10 @@
 import i18n from '@/lib/i18n/i18n';
 import axios from 'axios';
 
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+
 const axiosInstance = axios.create({
-  baseURL: 'https://web-production-42b8c.up.railway.app/api/',
+  baseURL: API_URL ? `${API_URL}/api/` : 'https://web-production-a673b.up.railway.app/api/',
 });
 
 axiosInstance.interceptors.request.use((config) => {

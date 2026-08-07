@@ -1,7 +1,10 @@
-import SponsorsList from "@/components/sponsors/sponsors-list/sponsorsList";
+'use client';
+import SponsorsList from '@/components/sponsors/sponsors-list/sponsorsList';
 
 export default function Sponsors() {
-    return <div>
-        <SponsorsList />
+  return (
+    <div>
+      <SponsorsList />
     </div>
+  );
 }
