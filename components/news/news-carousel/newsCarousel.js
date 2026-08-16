@@ -10,14 +10,14 @@ import { useTranslation } from 'react-i18next';
 import NewsCard from '../news-card/newsCard';
 
 export default function NewsCarousel() {
-  const { t } = useTranslation('news');
+  const { t, i18n } = useTranslation('news');
 
   const {
     data: newsItems = [],
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['news'],
+    queryKey: ['news', i18n.language],
     queryFn: getAllNews,
   });
 
@@ -62,8 +62,13 @@ export default function NewsCarousel() {
       slidesToSlide={1}
       swipeable
     >
-      {newsItems.map((item) => (
-        <NewsCard key={item.id} item={item} isCarouselCard />
+      {newsItems.map((item, index) => (
+        <NewsCard
+          key={item.id}
+          item={item}
+          isCarouselCard
+          priority={index < 3}
+        />
       ))}
     </Carousel>
   );

@@ -21,7 +21,7 @@ export default function EventResults({ event }) {
 
   const noResults =
     sortedCompetitions.length === 0 ||
-    sortedCompetitions.every((comp) => comp.results.length === 0);
+    sortedCompetitions.every((comp) => !(comp.results?.length > 0));
 
   // format time like 65.60
   const formatTime = (value) => {
@@ -34,7 +34,7 @@ export default function EventResults({ event }) {
 
   return (
     <div className={classes.resultsContainer}>
-      <h2 className={classes.title}>{event.title.toUpperCase()}</h2>
+      <h2 className={classes.title}>{(event.title || '').toUpperCase()}</h2>
 
       {noResults && (
         <p className={classes.noResultsMessage}>
@@ -66,15 +66,15 @@ export default function EventResults({ event }) {
                 <div>{t('results.time')}</div>
               </div>
 
-              {[...competition.results]
-                .sort((a, b) => a.place - b.place)
+              {[...(competition.results || [])]
+                .sort((a, b) => (a.place ?? 0) - (b.place ?? 0))
                 .map((result) => (
                   <div key={result.id} className={classes.row}>
                     <div>{result.place}</div>
 
-                    <div>{result.rider_horse_entry.rider.name}</div>
+                    <div>{result.rider_horse_entry?.rider?.name || '—'}</div>
 
-                    <div>{result.rider_horse_entry.horse.name}</div>
+                    <div>{result.rider_horse_entry?.horse?.name || '—'}</div>
 
                     <div>{result.faults}</div>
 

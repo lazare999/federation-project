@@ -1,51 +1,71 @@
 'use client';
 
 import { fetchEventById } from '@/actions/event-actions/eventActions';
-import EventPhotos from '@/components/event/event-details/event-photos/eventPhotos';
-import EventResults from '@/components/event/event-details/event-results/eventResults';
-import EventTimeSchedule from '@/components/event/event-details/event-time-schedule/eventTimeSchedule';
 import Loader from '@/components/loader/loader';
 import classes from '@/styles/events/event-details/eventDetails.module.css';
 import { useQuery } from '@tanstack/react-query';
+import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import EventTimer from '../event-timer/eventTimer';
+
+const EventTimeSchedule = dynamic(
+  () =>
+    import(
+      '@/components/event/event-details/event-time-schedule/eventTimeSchedule'
+    ),
+  { ssr: false, loading: () => <Loader /> }
+);
+
+const EventResults = dynamic(
+  () => import('@/components/event/event-details/event-results/eventResults'),
+  { ssr: false, loading: () => <Loader /> }
+);
+
+const EventPhotos = dynamic(
+  () => import('@/components/event/event-details/event-photos/eventPhotos'),
+  { ssr: false, loading: () => <Loader /> }
+);
+
+const EventTimer = dynamic(
+  () => import('@/components/event/event-details/event-timer/eventTimer'),
+  { ssr: false }
+);
 
 export default function EventDetailsClient({ eventId }) {
-  const { t } = useTranslation('events');
+  const { t, i18n } = useTranslation('events');
   const [activeTab, setActiveTab] = useState('results');
   const [scrollToCompId, setScrollToCompId] = useState(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     data: event,
     error,
     isLoading,
   } = useQuery({
-    queryKey: ['event', eventId],
+    queryKey: ['event', eventId, i18n.language],
     queryFn: () => fetchEventById(eventId),
+    enabled: mounted && Boolean(eventId),
+    retry: (failureCount, err) => {
+      const status = err?.status || err?.response?.status;
+      if (status === 404 || status === 400) return false;
+      return failureCount < 1;
+    },
   });
 
-  // Preload ALL event images fast
   useEffect(() => {
+    if (activeTab !== 'photos') return;
     if (!event?.images || event.images.length === 0) return;
-
-    let loadedCount = 0;
-    const total = event.images.length;
 
     event.images.forEach((url) => {
       const img = new window.Image();
       img.src = url;
-
-      img.onload = img.onerror = () => {
-        loadedCount++;
-        if (loadedCount === total) {
-          console.log('All event images preloaded!');
-        }
-      };
     });
-  }, [eventId, event?.images]);
+  }, [activeTab, event?.images]);
 
-  // ✅ Scroll logic
   useEffect(() => {
     if (activeTab === 'results' && scrollToCompId) {
       const el = document.getElementById(`competition-${scrollToCompId}`);
@@ -59,15 +79,22 @@ export default function EventDetailsClient({ eventId }) {
     }
   }, [activeTab, scrollToCompId]);
 
-  if (isLoading) return <Loader />;
-  if (error) return <div>{t('details.error')}</div>;
+  if (!mounted || isLoading) return <Loader />;
+  if (error) {
+    const status = error?.status || error?.response?.status;
+    const message =
+      status === 404 ? t('details.notFound') : t('details.error');
+    return <div>{message}</div>;
+  }
   if (!event) return <div>{t('details.notFound')}</div>;
 
-  const isUpcoming = new Date(event.date) > new Date();
+  const isUpcoming =
+    typeof event.is_upcoming === 'boolean'
+      ? event.is_upcoming
+      : new Date(event.date) > new Date();
 
   return (
     <div>
-      {/* Time Schedule */}
       <div className={classes.container}>
         <h2 className={classes.heading}>{t('details.timeSchedule')}</h2>
         <div className={classes.underline}></div>
@@ -82,10 +109,8 @@ export default function EventDetailsClient({ eventId }) {
         </div>
       </div>
 
-      {/* Only show timer if event is upcoming */}
       {isUpcoming && <EventTimer event={event} />}
 
-      {/* Tabs */}
       <div className={classes.buttonsContainer}>
         <button
           className={`${classes.button} ${
@@ -106,7 +131,6 @@ export default function EventDetailsClient({ eventId }) {
         </button>
       </div>
 
-      {/* Content Switch */}
       {activeTab === 'results' ? (
         <div id="results-section">
           <EventResults event={event} />

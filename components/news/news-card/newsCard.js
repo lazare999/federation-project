@@ -5,13 +5,20 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
-export default function NewsCard({ item, isCarouselCard = false }) {
+export default function NewsCard({
+  item,
+  isCarouselCard = false,
+  priority = false,
+}) {
   const router = useRouter();
   const { t } = useTranslation('news');
 
   const handleCardClick = () => {
     router.push(`/news/${item.id}`);
   };
+
+  const coverImage =
+    item.cover_image || item.images?.[0] || '/fallback-image.jpg';
 
   return (
     <div
@@ -23,11 +30,13 @@ export default function NewsCard({ item, isCarouselCard = false }) {
     >
       <div className={classes.imageWrapper}>
         <Image
-          src={item.images?.[0] || '/fallback-image.jpg'}
+          src={coverImage}
           alt={item.title || 'News Image'}
           width={400}
           height={250}
           className={classes.img}
+          sizes="(max-width: 768px) 100vw, 33vw"
+          priority={priority}
         />
       </div>
       {item.title && <div className={classes.title}>{item.title}</div>}

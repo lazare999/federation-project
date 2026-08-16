@@ -1,5 +1,5 @@
 .container {
-  max-width: 960px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 1.5rem;
 }
@@ -45,13 +45,17 @@
 
 .profileLayout {
   display: grid;
-  grid-template-columns: 1fr minmax(240px, 300px);
-  gap: 1.5rem;
-  align-items: start;
+  grid-template-columns: 1fr minmax(180px, 240px);
+  gap: 1.25rem;
+  align-items: stretch;
 }
 
 .profileMain {
   min-width: 0;
+}
+
+.entryDuesBelow {
+  margin-top: 1.5rem;
 }
 
 @media (max-width: 768px) {
@@ -154,6 +158,120 @@
   border-radius: 6px;
   padding: 0.5rem 0.65rem;
   font-size: 0.95rem;
+}
+
+.fileFieldLabel {
+  display: block;
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 0.4rem;
+}
+
+.fileInputHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.fileDropzone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  min-height: 120px;
+  border: 1px dashed #c7c7c7;
+  border-radius: 50%;
+  background: #eee;
+  cursor: pointer;
+  overflow: hidden;
+  margin: 0;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.fileDropzone:hover {
+  border-color: #999;
+  background: #e6e6e6;
+}
+
+.fileDropzoneFilled {
+  border-style: solid;
+  border-color: #ddd;
+  background: #eee;
+  padding: 0;
+}
+
+.fileDropzoneEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  text-align: center;
+  padding: 0.5rem;
+  width: 100%;
+  height: 100%;
+}
+
+.fileDropzoneTitle {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #555;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.fileDropzoneHint {
+  font-size: 0.7rem;
+  color: #888;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.filePreview {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fileDropzoneOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.fileClearBtn {
+  margin-top: 0.55rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.8rem;
+  background: #fff;
+  color: #666;
+  cursor: pointer;
+}
+
+.fileClearBtn:hover {
+  border-color: #bbb;
+  color: #333;
+  background: #fafafa;
 }
 
 .error {

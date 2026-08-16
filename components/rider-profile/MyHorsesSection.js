@@ -5,10 +5,14 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ApiRequestError } from '@/lib/api/api-error';
 import {
   createHorseClaimRequest,
+  createNewHorseClaimRequest,
   getMyHorses,
   searchMyHorses,
 } from '@/lib/api/auth';
-import { EQUESTRIAN_CLUBS, getEquestrianClubLabel } from '@/lib/constants/equestrianClubs';
+import {
+  EQUESTRIAN_CLUBS,
+  getEquestrianClubLabel,
+} from '@/lib/constants/equestrianClubs';
 import {
   getHorseCategoryLabel,
   getHorseColorLabel,
@@ -27,14 +31,14 @@ import classes from '@/styles/rider-profile/myHorses.module.css';
 
 const DEFAULT_FORM = {
   name: '',
+  passport_number: '',
   birth_year: '',
-  horse_level: 'bronze',
+  horse_level: '',
   color: 'bay',
   gender: 'gelding',
-  studbook: '',
   category: 'show',
   equestrian_club: 'other',
-  imagesText: '',
+  studbook: '',
 };
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -43,19 +47,41 @@ const BIRTH_YEAR_OPTIONS = Array.from(
   (_, i) => CURRENT_YEAR - i
 );
 
-function parseImagesText(text) {
-  if (!text?.trim()) return [];
-  return text
-    .split(/[\n,]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+const PASSPORT_EXISTS_MESSAGE =
+  'A horse with this passport number already exists. Please search for it in the catalog below and add it from there.';
+
+function getFieldError(data, field) {
+  const value = data?.[field];
+  if (value == null) return '';
+  if (Array.isArray(value)) return value.map(String).join(' ');
+  return String(value);
+}
+
+function isPassportExistsError(err) {
+  if (!(err instanceof ApiRequestError) || !err.data) return false;
+  if (err.data.passport_number != null) return true;
+  const text = [
+    err.data.detail,
+    err.data.message,
+    getFieldError(err.data, 'passport_number'),
+    err.message,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return text.includes('პასპორტ') || text.includes('passport');
 }
 
 function formatApiError(err, fallback = 'Request failed') {
   if (!(err instanceof ApiRequestError)) {
     return 'Could not connect to the server';
   }
+  if (isPassportExistsError(err)) {
+    return PASSPORT_EXISTS_MESSAGE;
+  }
   if (err.data?.detail) return String(err.data.detail);
+  const fieldError = getFieldError(err.data, 'passport_number');
+  if (fieldError) return fieldError;
   return err.message || fallback;
 }
 
@@ -89,7 +115,7 @@ function ProfileStatusBadge({ status }) {
 }
 
 function HorseCard({ horse, onRemove, removing }) {
-  const imageUrl = horse.images?.[0];
+  const imageUrl = horse.images?.[0] || horse.image;
   const profileStatus = resolveProfileStatus(horse);
   const canRemove = profileStatus === 'active' && horse.id != null;
   const removeDisabled =
@@ -114,6 +140,12 @@ function HorseCard({ horse, onRemove, removing }) {
         <ProfileStatusBadge status={profileStatus} />
       </div>
       <div className={classes.horseMeta}>
+        <div className={classes.horseMetaRow}>
+          <span className={classes.horseMetaLabel}>Passport</span>
+          <span className={classes.horseMetaValue}>
+            {horse.passport_number || '—'}
+          </span>
+        </div>
         <div className={classes.horseMetaRow}>
           <span className={classes.horseMetaLabel}>Birth year</span>
           <span className={classes.horseMetaValue}>{horse.birth_year ?? '—'}</span>
@@ -191,14 +223,19 @@ function HorseCard({ horse, onRemove, removing }) {
 
 function HorseRequestComposer({ onSubmitted, onCancel }) {
   const formId = useId();
+  const composerRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
   const [selectedCatalog, setSelectedCatalog] = useState([]);
   const [selectedNew, setSelectedNew] = useState([]);
-  const [showNewForm, setShowNewForm] = useState(false);
+  const [showNewForm, setShowNewForm] = useState(true);
   const [form, setForm] = useState(DEFAULT_FORM);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
   const [formError, setFormError] = useState('');
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -207,35 +244,42 @@ function HorseRequestComposer({ onSubmitted, onCancel }) {
   const requestIdRef = useRef(0);
 
   useEffect(() => {
-    const q = query.trim();
-    if (q.length < 2) {
+    const frame = window.requestAnimationFrame(() => {
+      composerRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  const runPassportSearch = async (rawQuery) => {
+    const q = String(rawQuery ?? query).trim();
+    if (!q) {
       setResults([]);
-      setSearching(false);
-      setSearchError('');
-      return undefined;
+      setSearchError('Enter the full passport number to search.');
+      setHasSearched(false);
+      return;
     }
 
     const requestId = ++requestIdRef.current;
-    const delay = setTimeout(async () => {
-      setSearching(true);
-      setSearchError('');
-      try {
-        const data = await searchMyHorses(q);
-        if (requestId !== requestIdRef.current) return;
-        setResults(data.horses ?? []);
-      } catch (err) {
-        if (requestId !== requestIdRef.current) return;
-        setResults([]);
-        setSearchError(formatApiError(err, 'Search failed'));
-      } finally {
-        if (requestId === requestIdRef.current) {
-          setSearching(false);
-        }
+    setSearching(true);
+    setSearchError('');
+    setHasSearched(true);
+    try {
+      const data = await searchMyHorses(q);
+      if (requestId !== requestIdRef.current) return;
+      setResults(data.horses ?? []);
+    } catch (err) {
+      if (requestId !== requestIdRef.current) return;
+      setResults([]);
+      setSearchError(formatApiError(err, 'Search failed'));
+    } finally {
+      if (requestId === requestIdRef.current) {
+        setSearching(false);
       }
-    }, 350);
-
-    return () => clearTimeout(delay);
-  }, [query]);
+    }
+  };
 
   const selectedCatalogIds = new Set(selectedCatalog.map((h) => h.id));
 
@@ -260,6 +304,26 @@ function HorseRequestComposer({ onSubmitted, onCancel }) {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreview('');
+      return undefined;
+    }
+    const url = URL.createObjectURL(imageFile);
+    setImagePreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imageFile]);
+
+  const resetNewForm = () => {
+    setForm(DEFAULT_FORM);
+    setImageFile(null);
+    setImagePreview('');
+    setFormError('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleAddNewHorse = (e) => {
     e.preventDefault();
     setFormError('');
@@ -269,27 +333,43 @@ function HorseRequestComposer({ onSubmitted, onCancel }) {
       return;
     }
 
+    if (!form.passport_number.trim()) {
+      setFormError('Passport number is required');
+      return;
+    }
+
     const birthYear = Number(form.birth_year);
     if (!form.birth_year || Number.isNaN(birthYear)) {
       setFormError('Birth year is required');
       return;
     }
 
+    if (!form.horse_level) {
+      setFormError('Horse level is required');
+      return;
+    }
+
+    if (imageFile && !(imageFile instanceof File)) {
+      setFormError('Photo must be a single file');
+      return;
+    }
+
     const payload = {
       tempId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       name: form.name.trim(),
+      passport_number: form.passport_number.trim(),
       birth_year: birthYear,
-      horse_level: form.horse_level || 'bronze',
+      horse_level: form.horse_level,
       color: form.color || 'bay',
       gender: form.gender || 'gelding',
-      studbook: form.studbook.trim(),
       category: form.category || 'show',
       equestrian_club: form.equestrian_club || 'other',
-      images: parseImagesText(form.imagesText),
+      studbook: form.studbook.trim(),
+      image: imageFile || null,
     };
 
     setSelectedNew((prev) => [...prev, payload]);
-    setForm(DEFAULT_FORM);
+    resetNewForm();
     setShowNewForm(false);
     setSubmitError('');
     setSubmitSuccess('');
@@ -304,12 +384,40 @@ function HorseRequestComposer({ onSubmitted, onCancel }) {
     setSubmitSuccess('');
     try {
       setSubmitting(true);
-      await createHorseClaimRequest({
-        action: 'add',
-        horse_ids: selectedCatalog.map((h) => h.id),
-        new_horses: selectedNew.map(({ tempId: _tempId, ...horse }) => horse),
-        note,
-      });
+
+      if (selectedCatalog.length > 0) {
+        await createHorseClaimRequest({
+          action: 'add',
+          horse_ids: selectedCatalog.map((h) => h.id),
+          note,
+        });
+      }
+
+      for (const horse of selectedNew) {
+        try {
+          await createNewHorseClaimRequest({
+            name: horse.name,
+            passport_number: horse.passport_number,
+            birth_year: horse.birth_year,
+            horse_level: horse.horse_level,
+            color: horse.color,
+            gender: horse.gender,
+            category: horse.category,
+            equestrian_club: horse.equestrian_club,
+            studbook: horse.studbook,
+            image: horse.image,
+            note,
+          });
+        } catch (err) {
+          if (isPassportExistsError(err) && horse.passport_number) {
+            setQuery(horse.passport_number);
+            setShowNewForm(false);
+            void runPassportSearch(horse.passport_number);
+          }
+          throw err;
+        }
+      }
+
       setSubmitSuccess(
         `Request sent for ${totalSelected} horse(s). Waiting for admin approval.`
       );
@@ -318,6 +426,7 @@ function HorseRequestComposer({ onSubmitted, onCancel }) {
       setNote('');
       setQuery('');
       setResults([]);
+      setHasSearched(false);
       await onSubmitted?.();
     } catch (err) {
       setSubmitError(formatApiError(err, 'Could not send request'));
@@ -327,86 +436,12 @@ function HorseRequestComposer({ onSubmitted, onCancel }) {
   };
 
   return (
-    <div className={classes.addFormCard}>
+    <div ref={composerRef} className={classes.addFormCard} tabIndex={-1}>
       <h3 className={classes.addFormTitle}>Request horses</h3>
       <p className={classes.panelHint}>
-        Add existing catalog horses and/or new horses to one request. Nothing is
-        added to your profile until an admin approves.
+        Request a new horse first, or find an existing one by passport number.
+        Nothing is added to your profile until an admin approves.
       </p>
-
-      <div className={classes.composerSection}>
-        <h4 className={classes.composerSubtitle}>Find in catalog</h4>
-        <div className={classes.formField}>
-          <label htmlFor={`${formId}-search`}>Search (min. 2 characters)</label>
-          <input
-            id={`${formId}-search`}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="e.g. Rex"
-            autoComplete="off"
-          />
-        </div>
-
-        {searching && <p className={classes.mutedText}>Searching…</p>}
-        {searchError && <p className={classes.error}>{searchError}</p>}
-
-        {!searching &&
-          query.trim().length >= 2 &&
-          results.length === 0 &&
-          !searchError && (
-            <p className={classes.mutedText}>No horses found</p>
-          )}
-
-        {results.length > 0 && (
-          <ul className={classes.searchResults}>
-            {results.map((horse) => {
-              const linked = horse.linked_athlete_count ?? 0;
-              const pending = Boolean(horse.pending_claim);
-              const alreadySelected = selectedCatalogIds.has(horse.id);
-              const disabled = pending || alreadySelected;
-
-              return (
-                <li key={horse.id} className={classes.searchResultItem}>
-                  <div className={classes.searchResultMain}>
-                    <strong className={classes.searchResultName}>
-                      {horse.name}
-                    </strong>
-                    <span className={classes.searchResultMeta}>
-                      {[
-                        horse.birth_year,
-                        horse.age != null ? `age ${horse.age}` : null,
-                        getHorseColorLabel(horse.color),
-                        getHorseGenderLabel(horse.gender),
-                        horse.horse_level_display || getHorseLevelDisplay(horse),
-                        getEquestrianClubLabel(horse.equestrian_club),
-                      ]
-                        .filter(Boolean)
-                        .join(' · ')}
-                    </span>
-                    <span className={classes.searchResultMeta}>
-                      Linked athletes: {linked}
-                      {pending ? ' · Request pending' : ''}
-                      {alreadySelected ? ' · In this request' : ''}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    className={classes.secondaryBtn}
-                    disabled={disabled}
-                    onClick={() => addCatalogHorse(horse)}
-                  >
-                    {pending
-                      ? 'Pending'
-                      : alreadySelected
-                        ? 'Added'
-                        : 'Add to request'}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
 
       <div className={classes.composerSection}>
         <div className={classes.composerSectionHeader}>
@@ -438,6 +473,21 @@ function HorseRequestComposer({ onSubmitted, onCancel }) {
               />
             </div>
             <div className={classes.formField}>
+              <label htmlFor={`${formId}-passport`}>
+                Passport number <span className={classes.required}>*</span>
+              </label>
+              <input
+                id={`${formId}-passport`}
+                value={form.passport_number}
+                onChange={(e) => handleChange('passport_number', e.target.value)}
+                autoComplete="off"
+              />
+              <p className={classes.fieldHint}>
+                If this passport already exists, search by passport below and add
+                that horse instead.
+              </p>
+            </div>
+            <div className={classes.formField}>
               <label htmlFor={`${formId}-birth`}>
                 Birth year <span className={classes.required}>*</span>
               </label>
@@ -455,22 +505,28 @@ function HorseRequestComposer({ onSubmitted, onCancel }) {
               </select>
             </div>
             <div className={classes.formField}>
-              <label htmlFor={`${formId}-level`}>Horse level</label>
+              <label htmlFor={`${formId}-level`}>
+                Horse level <span className={classes.required}>*</span>
+              </label>
               <select
                 id={`${formId}-level`}
                 value={form.horse_level}
                 onChange={(e) => handleChange('horse_level', e.target.value)}
+                required
               >
+                <option value="">Select level</option>
                 {HORSE_LEVELS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
                 ))}
               </select>
-              <p className={classes.fieldHint}>
-                Allowed tours:{' '}
-                {formatAllowedTours(getAllowedToursForLevel(form.horse_level))}
-              </p>
+              {form.horse_level && (
+                <p className={classes.fieldHint}>
+                  Allowed tours:{' '}
+                  {formatAllowedTours(getAllowedToursForLevel(form.horse_level))}
+                </p>
+              )}
             </div>
             <div className={classes.formField}>
               <label htmlFor={`${formId}-color`}>Color</label>
@@ -537,15 +593,56 @@ function HorseRequestComposer({ onSubmitted, onCancel }) {
               />
             </div>
             <div className={classes.formField}>
-              <label htmlFor={`${formId}-images`}>
-                Photo URLs (one per line or comma-separated)
-              </label>
-              <textarea
-                id={`${formId}-images`}
-                value={form.imagesText}
-                onChange={(e) => handleChange('imagesText', e.target.value)}
-                placeholder="e.g. https://example.com/photo.jpg"
+              <span className={classes.fileFieldLabel}>Photo (optional)</span>
+              <input
+                id={`${formId}-image`}
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className={classes.fileInputHidden}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setImageFile(file);
+                }}
               />
+              <label
+                htmlFor={`${formId}-image`}
+                className={`${classes.fileDropzone}${
+                  imagePreview ? ` ${classes.fileDropzoneFilled}` : ''
+                }`}
+              >
+                {imagePreview ? (
+                  <>
+                    <img
+                      src={imagePreview}
+                      alt=""
+                      className={classes.filePreview}
+                    />
+                    <span className={classes.fileDropzoneOverlay}>
+                      Change photo
+                    </span>
+                  </>
+                ) : (
+                  <span className={classes.fileDropzoneEmpty}>
+                    <span className={classes.fileDropzoneTitle}>Add photo</span>
+                    <span className={classes.fileDropzoneHint}>JPG / PNG</span>
+                  </span>
+                )}
+              </label>
+              {imageFile && (
+                <button
+                  type="button"
+                  className={classes.fileClearBtn}
+                  onClick={() => {
+                    setImageFile(null);
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = '';
+                    }
+                  }}
+                >
+                  Remove photo
+                </button>
+              )}
             </div>
 
             {formError && <p className={classes.error}>{formError}</p>}
@@ -559,8 +656,7 @@ function HorseRequestComposer({ onSubmitted, onCancel }) {
                 className={classes.secondaryBtn}
                 onClick={() => {
                   setShowNewForm(false);
-                  setFormError('');
-                  setForm(DEFAULT_FORM);
+                  resetNewForm();
                 }}
               >
                 Cancel
@@ -571,13 +667,112 @@ function HorseRequestComposer({ onSubmitted, onCancel }) {
       </div>
 
       <div className={classes.composerSection}>
+        <h4 className={classes.composerSubtitle}>Find by passport</h4>
+        <div className={classes.formField}>
+          <label htmlFor={`${formId}-search`}>Passport number</label>
+          <div className={classes.passportSearchRow}>
+            <input
+              id={`${formId}-search`}
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setHasSearched(false);
+                setResults([]);
+                setSearchError('');
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  void runPassportSearch();
+                }
+              }}
+              placeholder="Enter full passport number"
+              autoComplete="off"
+            />
+            <button
+              type="button"
+              className={classes.secondaryBtn}
+              onClick={() => void runPassportSearch()}
+              disabled={searching || !query.trim()}
+            >
+              {searching ? 'Searching…' : 'Search'}
+            </button>
+          </div>
+        </div>
+
+        {searchError && <p className={classes.error}>{searchError}</p>}
+
+        {!searching &&
+          hasSearched &&
+          results.length === 0 &&
+          !searchError && (
+            <p className={classes.mutedText}>
+              No horses found. If this is a new horse, use the form above.
+            </p>
+          )}
+
+        {results.length > 0 && (
+          <ul className={classes.searchResults}>
+            {results.map((horse) => {
+              const linked = horse.linked_athlete_count ?? 0;
+              const pending = Boolean(horse.pending_claim);
+              const alreadySelected = selectedCatalogIds.has(horse.id);
+              const disabled = pending || alreadySelected;
+
+              return (
+                <li key={horse.id} className={classes.searchResultItem}>
+                  <div className={classes.searchResultMain}>
+                    <strong className={classes.searchResultName}>
+                      {horse.name}
+                    </strong>
+                    <span className={classes.searchResultMeta}>
+                      Passport: {horse.passport_number || '—'}
+                    </span>
+                    <span className={classes.searchResultMeta}>
+                      {[
+                        horse.birth_year,
+                        horse.age != null ? `age ${horse.age}` : null,
+                        getHorseColorLabel(horse.color),
+                        getHorseGenderLabel(horse.gender),
+                        horse.horse_level_display || getHorseLevelDisplay(horse),
+                        getEquestrianClubLabel(horse.equestrian_club),
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </span>
+                    <span className={classes.searchResultMeta}>
+                      Linked athletes: {linked}
+                      {pending ? ' · Request pending' : ''}
+                      {alreadySelected ? ' · In this request' : ''}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className={classes.secondaryBtn}
+                    disabled={disabled}
+                    onClick={() => addCatalogHorse(horse)}
+                  >
+                    {pending
+                      ? 'Pending'
+                      : alreadySelected
+                        ? 'Added'
+                        : 'Add to request'}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      <div className={classes.composerSection}>
         <h4 className={classes.composerSubtitle}>
           This request ({totalSelected})
         </h4>
 
         {totalSelected === 0 ? (
           <p className={classes.mutedText}>
-            No horses selected yet. Add from catalog and/or create new ones.
+            No horses selected yet. Add a new horse and/or find one by passport.
           </p>
         ) : (
           <ul className={classes.basketList}>
@@ -586,14 +781,11 @@ function HorseRequestComposer({ onSubmitted, onCancel }) {
                 <div className={classes.basketMain}>
                   <strong>{horse.name}</strong>
                   <span className={classes.searchResultMeta}>
-                    Catalog ·{' '}
+                    Catalog · Passport: {horse.passport_number || '—'}
                     {[
-                      horse.birth_year,
-                      getHorseColorLabel(horse.color),
-                      getHorseGenderLabel(horse.gender),
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
+                      horse.birth_year ? ` · ${horse.birth_year}` : '',
+                      horse.color ? ` · ${getHorseColorLabel(horse.color)}` : '',
+                    ].join('')}
                   </span>
                 </div>
                 <button
@@ -611,8 +803,8 @@ function HorseRequestComposer({ onSubmitted, onCancel }) {
                 <div className={classes.basketMain}>
                   <strong>{horse.name}</strong>
                   <span className={classes.searchResultMeta}>
-                    New · {horse.birth_year} · {getHorseColorLabel(horse.color)}{' '}
-                    · {getHorseGenderLabel(horse.gender)}
+                    New · Passport: {horse.passport_number} · {horse.birth_year}
+                    {horse.image ? ` · ${horse.image.name}` : ''}
                   </span>
                 </div>
                 <button

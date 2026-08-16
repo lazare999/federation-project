@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import { ApiRequestError } from '@/lib/api/api-error';
 import { clearAccessToken, getMe, patchMe } from '@/lib/api/auth';
@@ -10,7 +10,12 @@ import {
   getEquestrianClubLabel,
 } from '@/lib/constants/equestrianClubs';
 import { getAccessToken, redirectToLogin } from '@/lib/auth/token';
-import MyEventsSection from '@/components/rider-profile/MyEventsSection';
+import EntryDuesBlock from '@/components/rider-profile/EntryDuesBlock';
+import {
+  MyEventsProvider,
+  UpcomingEventsSection,
+  ParticipationHistorySection,
+} from '@/components/rider-profile/MyEventsSection';
 import MembershipBlock from '@/components/rider-profile/MembershipBlock';
 import MyHorsesSection from '@/components/rider-profile/MyHorsesSection';
 import classes from '@/styles/rider-profile/riderProfile.module.css';
@@ -23,7 +28,6 @@ const EDITABLE_FIELDS = [
   'age',
   'club',
   'equestrian_club',
-  'image',
 ];
 
 function riderToForm(rider) {
@@ -70,6 +74,16 @@ function buildPatchPayload(form, initial) {
   return payload;
 }
 
+function appendPayloadToFormData(formData, payload) {
+  for (const [key, value] of Object.entries(payload)) {
+    if (value == null) {
+      formData.append(key, '');
+    } else {
+      formData.append(key, String(value));
+    }
+  }
+}
+
 function getInitials(name) {
   if (!name?.trim()) return '?';
   return name
@@ -82,6 +96,8 @@ function getInitials(name) {
 
 export default function RiderProfileCabinet() {
   const router = useRouter();
+  const photoInputId = useId();
+  const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [notFound, setNotFound] = useState(false);
@@ -92,6 +108,8 @@ export default function RiderProfileCabinet() {
   const [saveError, setSaveError] = useState('');
   const [saving, setSaving] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
 
   const loadProfile = useCallback(async () => {
     setLoadError('');
@@ -144,14 +162,34 @@ export default function RiderProfileCabinet() {
     router.push('/login/');
   };
 
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreview('');
+      return undefined;
+    }
+    const url = URL.createObjectURL(imageFile);
+    setImagePreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imageFile]);
+
+  const clearImageFile = () => {
+    setImageFile(null);
+    setImagePreview('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleEdit = () => {
     setSaveError('');
+    clearImageFile();
     setEditing(true);
   };
 
   const handleCancel = () => {
     setSaveError('');
     setEditing(false);
+    clearImageFile();
     if (profile?.rider) {
       const reset = riderToForm(profile.rider);
       setForm(reset);
@@ -168,19 +206,41 @@ export default function RiderProfileCabinet() {
     setSaveError('');
 
     const payload = buildPatchPayload(form, initialForm);
-    if (Object.keys(payload).length === 0) {
+    const imageCleared =
+      !imageFile &&
+      String(form?.image ?? '') === '' &&
+      String(initialForm?.image ?? '') !== '';
+
+    if (
+      Object.keys(payload).length === 0 &&
+      !imageFile &&
+      !imageCleared
+    ) {
       setEditing(false);
       return;
     }
 
     try {
       setSaving(true);
-      const data = await patchMe(payload);
+
+      let data;
+      if (imageFile) {
+        const formData = new FormData();
+        appendPayloadToFormData(formData, payload);
+        formData.append('image', imageFile);
+        data = await patchMe(formData);
+      } else if (imageCleared) {
+        data = await patchMe({ ...payload, image: null });
+      } else {
+        data = await patchMe(payload);
+      }
+
       setProfile(data);
       const nextForm = riderToForm(data.rider);
       setForm(nextForm);
       setInitialForm(nextForm);
       setImageError(false);
+      clearImageFile();
       setEditing(false);
     } catch (err) {
       if (err instanceof ApiRequestError && err.status !== 401) {
@@ -260,14 +320,6 @@ export default function RiderProfileCabinet() {
               />
             </div>
             <div className={classes.formField}>
-              <label htmlFor="image">Photo URL</label>
-              <input
-                id="image"
-                value={form.image}
-                onChange={(e) => handleChange('image', e.target.value)}
-              />
-            </div>
-            <div className={classes.formField}>
               <label htmlFor="age">Age</label>
               <input
                 id="age"
@@ -327,6 +379,59 @@ export default function RiderProfileCabinet() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className={classes.formField}>
+              <span className={classes.fileFieldLabel}>Photo</span>
+              <input
+                id={photoInputId}
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className={classes.fileInputHidden}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setImageFile(file);
+                }}
+              />
+              <label
+                htmlFor={photoInputId}
+                className={`${classes.fileDropzone}${
+                  imagePreview || form.image
+                    ? ` ${classes.fileDropzoneFilled}`
+                    : ''
+                }`}
+              >
+                {imagePreview || form.image ? (
+                  <>
+                    <img
+                      src={imagePreview || form.image}
+                      alt=""
+                      className={classes.filePreview}
+                    />
+                    <span className={classes.fileDropzoneOverlay}>
+                      Change photo
+                    </span>
+                  </>
+                ) : (
+                  <span className={classes.fileDropzoneEmpty}>
+                    <span className={classes.fileDropzoneTitle}>Add photo</span>
+                    <span className={classes.fileDropzoneHint}>JPG / PNG</span>
+                  </span>
+                )}
+              </label>
+              {(imageFile || form.image) && (
+                <button
+                  type="button"
+                  className={classes.fileClearBtn}
+                  onClick={() => {
+                    clearImageFile();
+                    handleChange('image', '');
+                  }}
+                >
+                  Remove photo
+                </button>
+              )}
             </div>
 
             {saveError && <p className={classes.error}>{saveError}</p>}
@@ -403,8 +508,14 @@ export default function RiderProfileCabinet() {
         </div>
       </div>
 
-      <MyEventsSection />
-      <MyHorsesSection />
+      <div className={classes.entryDuesBelow}>
+        <EntryDuesBlock />
+      </div>
+      <MyEventsProvider>
+        <UpcomingEventsSection />
+        <MyHorsesSection />
+        <ParticipationHistorySection />
+      </MyEventsProvider>
     </div>
   );
 }

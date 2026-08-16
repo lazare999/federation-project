@@ -1,41 +1,27 @@
 'use client';
 
 import { getSponsors } from '@/actions/sponsor-actions/sponsorActions';
-import Image from 'next/image';
-import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-
 import ContactContainer from '@/components/contact/contact-container/contactContainer';
 import Loader from '@/components/loader/loader';
 import classes from '@/styles/sponsors/sponsors-list/sponsorsList.module.css';
+import { useQuery } from '@tanstack/react-query';
+import Image from 'next/image';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function SponsorsList() {
-  const { t } = useTranslation('sponsors');
-  const [sponsors, setSponsors] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { t, i18n } = useTranslation('sponsors');
   const [showForm, setShowForm] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
+  const {
+    data: sponsors = [],
+    isLoading,
+  } = useQuery({
+    queryKey: ['sponsors', i18n.language],
+    queryFn: getSponsors,
+  });
 
-    const loadSponsors = async () => {
-      try {
-        const data = await getSponsors();
-        if (isMounted) setSponsors(data || []);
-      } catch (err) {
-        console.error(t('error'), err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    loadSponsors();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  if (loading) return <Loader message={t('loading')} />;
+  if (isLoading) return <Loader message={t('loading')} />;
 
   return (
     <section className={classes.container}>
@@ -43,7 +29,7 @@ export default function SponsorsList() {
       <div className={classes.underline}></div>
 
       <div className={classes.grid}>
-        {sponsors?.map((sponsor) => (
+        {sponsors?.map((sponsor, index) => (
           <a
             key={sponsor.id}
             href={sponsor.link}
@@ -58,6 +44,7 @@ export default function SponsorsList() {
               height={200}
               className={classes.image}
               unoptimized
+              priority={index < 3}
             />
           </a>
         ))}

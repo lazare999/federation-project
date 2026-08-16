@@ -1,6 +1,7 @@
 'use client';
 
 import classes from '@/styles/contact/contact-form/contactForm.module.css';
+import axiosInstance from '@/utils/axiosInstance';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -23,16 +24,11 @@ export default function ContactForm() {
     e.preventDefault();
     setStatus(t('form.status.sending'));
 
-    const res = await fetch('/api/contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    });
-
-    if (res.ok) {
+    try {
+      await axiosInstance.post('contact/', form);
       setStatus(t('form.status.success'));
       setForm({ name: '', phone: '', email: '', message: '' });
-    } else {
+    } catch {
       setStatus(t('form.status.error'));
     }
   };

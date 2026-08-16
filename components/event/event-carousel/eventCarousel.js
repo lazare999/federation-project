@@ -6,6 +6,7 @@ import 'react-multi-carousel/lib/styles.css';
 import Loader from '@/components/loader/loader';
 
 import { getEvents } from '@/actions/event-actions/eventActions';
+import i18n from '@/lib/i18n/i18n';
 import { useQuery } from '@tanstack/react-query';
 import EventCard from '../event-card/eventCard';
 
@@ -15,7 +16,7 @@ export default function EventCarousel() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['events'],
+    queryKey: ['events', i18n.language],
     queryFn: getEvents,
   });
 
@@ -60,11 +61,12 @@ export default function EventCarousel() {
       slidesToSlide={1}
       swipeable
     >
-      {events.map((event) => (
+      {events.map((event, index) => (
         <EventCard
           key={event.id || event.$id}
           event={event}
           isCarouselCard={true}
+          priority={index < 3}
         />
       ))}
     </Carousel>

@@ -132,6 +132,11 @@
   border-radius: 8px;
   padding: 1.25rem;
   background: #fff;
+  scroll-margin-top: 1.25rem;
+}
+
+.addFormCard:focus {
+  outline: none;
 }
 
 .addFormTitle {
@@ -248,6 +253,132 @@
   border-radius: 6px;
   padding: 0.5rem 0.65rem;
   font-size: 0.95rem;
+}
+
+.passportSearchRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.passportSearchRow input {
+  flex: 1;
+  min-width: 0;
+}
+
+.passportSearchRow .secondaryBtn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.fileFieldLabel {
+  display: block;
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 0.4rem;
+}
+
+.fileInputHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.fileDropzone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 260px;
+  height: 140px;
+  min-height: 140px;
+  border: 1px dashed #c7c7c7;
+  border-radius: 6px;
+  background: #eee;
+  cursor: pointer;
+  overflow: hidden;
+  margin: 0;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.fileDropzone:hover {
+  border-color: #999;
+  background: #e6e6e6;
+}
+
+.fileDropzone:focus-within {
+  border-color: #666;
+  outline: none;
+}
+
+.fileDropzoneFilled {
+  border-style: solid;
+  border-color: #e5e5e5;
+  background: #eee;
+  padding: 0;
+}
+
+.fileDropzoneEmpty {
+  display: grid;
+  gap: 0.2rem;
+  text-align: center;
+  padding: 0.75rem;
+}
+
+.fileDropzoneTitle {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #555;
+  line-height: 1.25;
+}
+
+.fileDropzoneHint {
+  font-size: 0.75rem;
+  color: #888;
+  line-height: 1.2;
+}
+
+.filePreview {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fileDropzoneOverlay {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 0.35rem 0.5rem;
+  background: rgba(255, 255, 255, 0.92);
+  border-top: 1px solid #eee;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+}
+
+.fileClearBtn {
+  margin-top: 0.55rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.8rem;
+  background: #fff;
+  color: #666;
+  cursor: pointer;
+}
+
+.fileClearBtn:hover {
+  border-color: #bbb;
+  color: #333;
+  background: #fafafa;
 }
 
 .formField textarea {

@@ -29,15 +29,16 @@ export default function Events() {
   const now = new Date();
 
   const filteredEvents = events.filter((event) => {
-    const eventDate = new Date(event.date);
+    if (selectedCategory === 'all') return true;
 
-    if (selectedCategory === 'all') {
-      return true;
-    } else if (selectedCategory === 'upcoming') {
-      return eventDate >= now;
-    } else if (selectedCategory === 'previous') {
-      return eventDate < now;
+    if (typeof event.is_upcoming === 'boolean') {
+      if (selectedCategory === 'upcoming') return event.is_upcoming;
+      if (selectedCategory === 'previous') return !event.is_upcoming;
     }
+
+    const eventDate = new Date(event.date);
+    if (selectedCategory === 'upcoming') return eventDate >= now;
+    if (selectedCategory === 'previous') return eventDate < now;
     return false;
   });
 
@@ -55,8 +56,12 @@ export default function Events() {
         <div>{t('page.noEvents')}</div>
       ) : (
         <div className={classes.grid}>
-          {filteredEvents.map((event) => (
-            <EventCard key={event.id || event.$id} event={event} />
+          {filteredEvents.map((event, index) => (
+            <EventCard
+              key={event.id || event.$id}
+              event={event}
+              priority={index < 3}
+            />
           ))}
         </div>
       )}

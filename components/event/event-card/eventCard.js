@@ -4,18 +4,22 @@ import classes from '@/styles/events/event-card/eventCard.module.css';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-export default function EventCard({ event, onClick, isCarouselCard }) {
+export default function EventCard({
+  event,
+  onClick,
+  isCarouselCard,
+  priority = false,
+}) {
   const router = useRouter();
 
   const handleCardClick = () => {
     if (onClick) {
       onClick(event.id || event.$id);
     } else {
-      router.push(`/events/${event.id || event.$id}`);
+      router.push(`/events/${event.id || event.$id}/`);
     }
   };
 
-  // ✅ Use ONLY cover_image from DB
   const coverImage = event?.cover_image || '/placeholder.jpg';
 
   return (
@@ -33,7 +37,7 @@ export default function EventCard({ event, onClick, isCarouselCard }) {
           fill
           className={classes.image}
           sizes="(max-width: 768px) 100vw, 33vw"
-          priority
+          priority={priority}
         />
       </div>
 

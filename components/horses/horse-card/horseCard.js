@@ -9,6 +9,7 @@ export default function HorseCard({ horse, onClick }) {
 
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
+  const coverImage = horse.cover_image || horse.images?.[0] || '';
 
   // Mouse events
   const handleMouseDown = (e) => {
@@ -59,7 +60,7 @@ export default function HorseCard({ horse, onClick }) {
     <div
       className={classes.card}
       style={{
-        backgroundImage: `url(${horse.images?.[0] || ''})`,
+        backgroundImage: coverImage ? `url(${coverImage})` : undefined,
         cursor: 'pointer',
       }}
       onMouseDown={handleMouseDown}

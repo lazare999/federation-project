@@ -171,7 +171,10 @@ function MembershipBlockContent() {
 
   if (loading) {
     return (
-      <aside id="membership" className={classes.membershipBlock}>
+      <aside
+        id="membership"
+        className={`${classes.membershipBlock} ${classes.membershipBlockCompact}`}
+      >
         <p className={classes.loading}>Loading membership...</p>
       </aside>
     );
@@ -179,7 +182,10 @@ function MembershipBlockContent() {
 
   if (loadError) {
     return (
-      <aside id="membership" className={classes.membershipBlock}>
+      <aside
+        id="membership"
+        className={`${classes.membershipBlock} ${classes.membershipBlockCompact}`}
+      >
         <p className={classes.error}>{loadError}</p>
       </aside>
     );
@@ -205,8 +211,11 @@ function MembershipBlockContent() {
   const payButtonLabel = isActive ? 'Renew membership' : 'Pay membership';
 
   return (
-    <aside id="membership" className={classes.membershipBlock}>
-      <h2 className={classes.blockTitle}>National registration / Membership</h2>
+    <aside
+      id="membership"
+      className={`${classes.membershipBlock} ${classes.membershipBlockCompact}`}
+    >
+      <h2 className={classes.blockTitle}>Membership</h2>
 
       {data?.payment_provider === 'bog' && (
         <p className={classes.providerNote}>Payment via Bank of Georgia</p>
@@ -252,26 +261,30 @@ function MembershipBlockContent() {
         <p className={classes.blockedNote}>{payBlockedReason}</p>
       )}
 
-      {showContinue && (
-        <button
-          type="button"
-          className={classes.payBtn}
-          onClick={handleContinuePayment}
-          disabled={paying || processingPayment}
-        >
-          Continue payment
-        </button>
-      )}
+      {(showContinue || showPayButton) && (
+        <div className={classes.payActions}>
+          {showContinue && (
+            <button
+              type="button"
+              className={classes.payBtn}
+              onClick={handleContinuePayment}
+              disabled={paying || processingPayment}
+            >
+              Continue payment
+            </button>
+          )}
 
-      {showPayButton && (
-        <button
-          type="button"
-          className={classes.payBtn}
-          onClick={handlePay}
-          disabled={paying || processingPayment}
-        >
-          {paying ? 'Redirecting to bank…' : payButtonLabel}
-        </button>
+          {showPayButton && (
+            <button
+              type="button"
+              className={classes.payBtn}
+              onClick={handlePay}
+              disabled={paying || processingPayment}
+            >
+              {paying ? 'Redirecting to bank…' : payButtonLabel}
+            </button>
+          )}
+        </div>
       )}
     </aside>
   );
@@ -279,7 +292,9 @@ function MembershipBlockContent() {
 
 function MembershipBlockFallback() {
   return (
-    <aside className={classes.membershipBlock}>
+    <aside
+      className={`${classes.membershipBlock} ${classes.membershipBlockCompact}`}
+    >
       <p className={classes.loading}>Loading membership...</p>
     </aside>
   );

@@ -8,14 +8,14 @@ import { useTranslation } from 'react-i18next';
 import NewsCard from '../news-card/newsCard';
 
 export default function NewsList() {
-  const { t } = useTranslation('news');
+  const { t, i18n } = useTranslation('news');
 
   const {
     data: newsItems = [],
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['news'],
+    queryKey: ['news', i18n.language],
     queryFn: getAllNews,
   });
 
@@ -24,8 +24,8 @@ export default function NewsList() {
 
   return (
     <div className={classes.newsContainer}>
-      {newsItems.map((item) => (
-        <NewsCard key={item.id} item={item} />
+      {newsItems.map((item, index) => (
+        <NewsCard key={item.id} item={item} priority={index < 3} />
       ))}
     </div>
   );

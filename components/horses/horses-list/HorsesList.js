@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import HorseCard from '../horse-card/horseCard';
 
 export default function HorsesList({ horses }) {
-  // const { t } = useTranslation('horses');
   const router = useRouter();
 
   const handleCardClick = (horseId) => {

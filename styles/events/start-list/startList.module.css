@@ -48,6 +48,23 @@
   font-weight: bold;
 }
 
+.cellWithBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.unpaidBadge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: #fef3c7;
+  color: #92400e;
+}
+
 @media (max-width: 480px) {
   .title {
     font-size: 1.5rem;

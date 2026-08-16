@@ -3,7 +3,7 @@
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 
-import { getHorses } from '@/actions/horse-action/horseAction'; // your fetch function
+import { getHorses } from '@/actions/horse-action/horseAction';
 import Loader from '@/components/loader/loader';
 import classes from '@/styles/horses/horses-list/horsesList.module.css';
 import { useQuery } from '@tanstack/react-query';
@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import HorseCard from '../horse-card/horseCard';
 
 export default function HorseCarousel() {
-  const { t } = useTranslation('horses');
+  const { t, i18n } = useTranslation('horses');
   const router = useRouter();
 
   const {
@@ -20,7 +20,7 @@ export default function HorseCarousel() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['horses'],
+    queryKey: ['horses', i18n.language],
     queryFn: getHorses,
   });
 

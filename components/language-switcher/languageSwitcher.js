@@ -11,7 +11,12 @@ export default function LanguageSwitcher() {
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
-    queryClient.invalidateQueries(); // refetch queries after lang change
+    queryClient.invalidateQueries({ queryKey: ['events'] });
+    queryClient.invalidateQueries({ queryKey: ['event'] });
+    queryClient.invalidateQueries({ queryKey: ['horses'] });
+    queryClient.invalidateQueries({ queryKey: ['news'] });
+    queryClient.invalidateQueries({ queryKey: ['newsItem'] });
+    queryClient.invalidateQueries({ queryKey: ['sponsors'] });
   };
 
   return (
