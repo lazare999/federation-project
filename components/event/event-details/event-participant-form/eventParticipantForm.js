@@ -9,6 +9,7 @@ import {
   searchHorses,
   searchRiders,
 } from '@/actions/participant-actions/participant-actions';
+import { capitalizeName } from '@/lib/utils/capitalizeName';
 
 export default function EventParticipantForm({ event }) {
   const { t } = useTranslation('events');
@@ -221,7 +222,7 @@ export default function EventParticipantForm({ event }) {
           <ul className={classes.suggestions}>
             {riderSuggestions.map((r) => (
               <li key={r.id} onClick={() => selectRider(r)}>
-                {r.name}
+                {capitalizeName(r.name)}
               </li>
             ))}
           </ul>
@@ -287,7 +288,7 @@ export default function EventParticipantForm({ event }) {
           <ul className={classes.suggestions}>
             {horseSuggestions.map((h) => (
               <li key={h.id} onClick={() => selectHorse(h)}>
-                {h.name}
+                {capitalizeName(h.name)}
               </li>
             ))}
           </ul>
@@ -339,7 +340,7 @@ export default function EventParticipantForm({ event }) {
 
               return (
                 <li key={i}>
-                  {h.horseName} ({comp?.name})
+                  {capitalizeName(h.horseName)} ({comp?.name})
                 </li>
               );
             })}

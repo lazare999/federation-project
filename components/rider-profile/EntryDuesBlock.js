@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ApiRequestError } from '@/lib/api/api-error';
 import { getMyEntryDues, requestEntryDuesPayment } from '@/lib/api/auth';
 import classes from '@/styles/rider-profile/membership.module.css';
+import { capitalizeName } from '@/lib/utils/capitalizeName';
 
 const POLL_INTERVAL_MS = 2500;
 const MAX_POLL_ATTEMPTS = 12;
@@ -437,7 +438,7 @@ function EntryDuesBlockContent() {
                           className={classes.billingHorseLine}
                         >
                           <span className={classes.horseName}>
-                            {line.horseName}
+                            {capitalizeName(line.horseName)}
                           </span>
                           <span className={classes.detailValue}>
                             {formatAmount(

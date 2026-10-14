@@ -3,6 +3,7 @@
 import classes from '@/styles/horses/horses-list/horsesList.module.css';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { capitalizeName } from '@/lib/utils/capitalizeName';
 
 export default function HorseCard({ horse, onClick }) {
   const { t } = useTranslation('horses');
@@ -71,7 +72,7 @@ export default function HorseCard({ horse, onClick }) {
       onTouchEnd={handleTouchEnd}
     >
       <div className={classes.overlay}></div>
-      <div className={classes.name}>{horse.name}</div>
+      <div className={classes.name}>{capitalizeName(horse.name)}</div>
       <div className={classes.infoBox}>
         <div className={classes.info}>
           {t('labels.birthYear')}: {horse.birth_year}

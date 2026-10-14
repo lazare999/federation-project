@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ImageViewer from 'react-simple-image-viewer';
+import { capitalizeName } from '@/lib/utils/capitalizeName';
 
 export default function HorseDetailsClient({ horse }) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
@@ -22,7 +23,7 @@ export default function HorseDetailsClient({ horse }) {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.name}>{horse.name}</h1>
+      <h1 className={styles.name}>{capitalizeName(horse.name)}</h1>
       <div className={styles.info}>
         <p>
           <strong>{t('labels.birthYear')}:</strong> {horse.birth_year}
@@ -47,7 +48,7 @@ export default function HorseDetailsClient({ horse }) {
           >
             <Image
               src={img}
-              alt={`${horse.name} ${idx + 1}`}
+              alt={`${capitalizeName(horse.name)} ${idx + 1}`}
               width={300}
               height={200}
               className={styles.galleryImage}

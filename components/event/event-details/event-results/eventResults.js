@@ -3,11 +3,97 @@
 import classes from '@/styles/events/event-results/eventResults.module.css';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { capitalizeName } from '@/lib/utils/capitalizeName';
+import {
+  getVisibleResultColumns,
+  isClassifiedResult,
+  normalizeCompetitionResult,
+  resultCell,
+  resultGridTemplate,
+  sortCompetitionResults,
+} from '@/lib/utils/competitionResults';
+
+function ResultTable({ competition, t }) {
+  const secondsLabel = t('results.secondsShort');
+  const results = sortCompetitionResults(competition.results);
+  const columns = getVisibleResultColumns(
+    competition.scoring_format,
+    competition.results
+  );
+  const gridTemplate = resultGridTemplate(columns);
+
+  return (
+    <div className={classes.tableWrap}>
+      <div className={classes.table}>
+        <div
+          className={`${classes.row} ${classes.header}`}
+          style={{ gridTemplateColumns: gridTemplate }}
+        >
+          <div>#</div>
+          <div>{t('results.rider')}</div>
+          <div>{t('results.horse')}</div>
+          <div>{t('results.place')}</div>
+          {columns.faults && <div>{t('results.faults')}</div>}
+          {columns.time && <div>{t('results.time')}</div>}
+          {columns.jumpoff && <div>{t('results.jumpoff')}</div>}
+          {columns.points && <div>{t('results.points')}</div>}
+        </div>
+
+        {results.map((raw, index) => {
+          const result = normalizeCompetitionResult(raw);
+          const classified = isClassifiedResult(result);
+
+          return (
+            <div
+              key={raw.id ?? `${raw.place}-${index}`}
+              className={`${classes.row} ${
+                classified ? '' : classes.statusRow
+              }`}
+              style={{ gridTemplateColumns: gridTemplate }}
+              title={result.notes || result.statusDisplay || undefined}
+            >
+              <div>{index + 1}</div>
+              <div>
+                {capitalizeName(
+                  raw.rider_horse_entry?.rider?.name || '—'
+                )}
+              </div>
+              <div>
+                {capitalizeName(
+                  raw.rider_horse_entry?.horse?.name || '—'
+                )}
+              </div>
+              <div>
+                <span className={classified ? '' : classes.statusCode}>
+                  {resultCell(result, 'place', secondsLabel)}
+                </span>
+                {result.notes ? (
+                  <span className={classes.notes}>{result.notes}</span>
+                ) : null}
+              </div>
+              {columns.faults && (
+                <div>{resultCell(result, 'faults', secondsLabel)}</div>
+              )}
+              {columns.time && (
+                <div>{resultCell(result, 'time', secondsLabel)}</div>
+              )}
+              {columns.jumpoff && (
+                <div>{resultCell(result, 'jumpoff', secondsLabel)}</div>
+              )}
+              {columns.points && (
+                <div>{resultCell(result, 'points', secondsLabel)}</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function EventResults({ event }) {
   const { t } = useTranslation('events');
 
-  // SORT competitions by date + start_time
   const sortedCompetitions = useMemo(() => {
     if (!event?.competitions) return [];
 
@@ -19,18 +105,10 @@ export default function EventResults({ event }) {
     });
   }, [event?.competitions]);
 
-  const noResults =
-    sortedCompetitions.length === 0 ||
-    sortedCompetitions.every((comp) => !(comp.results?.length > 0));
-
-  // format time like 65.60
-  const formatTime = (value) => {
-    if (value === null || value === undefined) {
-      return '-';
-    }
-
-    return Number(value).toFixed(2);
-  };
+  const competitionsWithResults = sortedCompetitions.filter(
+    (comp) => comp.results?.length > 0
+  );
+  const noResults = competitionsWithResults.length === 0;
 
   return (
     <div className={classes.resultsContainer}>
@@ -43,13 +121,18 @@ export default function EventResults({ event }) {
       )}
 
       {!noResults &&
-        sortedCompetitions.map((competition) => (
+        competitionsWithResults.map((competition) => (
           <div
             key={competition.id}
             id={`competition-${competition.id}`}
             className={classes.resultSection}
           >
             <p className={classes.classInfo}>{competition.name}</p>
+            {competition.scoring_format_display ? (
+              <p className={classes.formatInfo}>
+                {competition.scoring_format_display}
+              </p>
+            ) : null}
 
             <p className={classes.date}>
               {t('results.start')}:{' '}
@@ -57,31 +140,7 @@ export default function EventResults({ event }) {
               {competition.start_time?.slice(0, 5)}
             </p>
 
-            <div className={classes.table}>
-              <div className={`${classes.row} ${classes.header}`}>
-                <div>{t('results.rank')}</div>
-                <div>{t('results.rider')}</div>
-                <div>{t('results.horse')}</div>
-                <div>{t('results.faults')}</div>
-                <div>{t('results.time')}</div>
-              </div>
-
-              {[...(competition.results || [])]
-                .sort((a, b) => (a.place ?? 0) - (b.place ?? 0))
-                .map((result) => (
-                  <div key={result.id} className={classes.row}>
-                    <div>{result.place}</div>
-
-                    <div>{result.rider_horse_entry?.rider?.name || '—'}</div>
-
-                    <div>{result.rider_horse_entry?.horse?.name || '—'}</div>
-
-                    <div>{result.faults}</div>
-
-                    <div>{formatTime(result.time)}</div>
-                  </div>
-                ))}
-            </div>
+            <ResultTable competition={competition} t={t} />
           </div>
         ))}
     </div>

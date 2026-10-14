@@ -72,10 +72,18 @@
   border-color: #888;
 }
 
+.fieldHint {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #666;
+}
+
 .error {
   color: #b91c1c;
   font-size: 0.875rem;
   margin-top: 0.15rem;
+  line-height: 1.45;
 }
 
 .errorBox {

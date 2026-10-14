@@ -66,12 +66,12 @@
 }
 
 .sectionTitle {
-  font-size: 1.25rem;
+  font-size: 1.45rem;
   font-weight: 600;
 }
 
 .sectionCount {
-  font-size: 0.875rem;
+  font-size: 0.92rem;
   color: #666;
 }
 
@@ -142,7 +142,7 @@
 }
 
 .eventTitle {
-  font-size: 1.05rem;
+  font-size: 1.32rem;
   font-weight: 600;
   margin: 0 0 0.35rem;
 }
@@ -157,13 +157,13 @@
 }
 
 .eventMeta {
-  font-size: 0.875rem;
+  font-size: 1.05rem;
   color: #555;
   margin: 0.15rem 0;
 }
 
 .eventDescription {
-  font-size: 0.875rem;
+  font-size: 0.92rem;
   color: #444;
   margin: 0.5rem 0 0;
   line-height: 1.45;
@@ -172,9 +172,9 @@
 .registeredBadge {
   display: inline-block;
   margin-top: 0.5rem;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  padding: 0.2rem 0.5rem;
+  padding: 0.25rem 0.55rem;
   border-radius: 4px;
   background: #dcfce7;
   color: #166534;
@@ -184,9 +184,9 @@
 .paidBadge {
   display: inline-block;
   margin-left: 0.45rem;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  padding: 0.12rem 0.4rem;
+  padding: 0.15rem 0.45rem;
   border-radius: 4px;
   vertical-align: middle;
 }
@@ -211,7 +211,7 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 1.05rem;
 }
 
 .unpaidSummaryLabel {
@@ -224,25 +224,106 @@
 
 .registrationDeadline {
   margin: 0.55rem 0 0;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #555;
 }
 
 .registrationDeadlineHint {
   margin: 0.55rem 0 0.25rem;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #666;
   line-height: 1.4;
 }
 
 .paySection {
   margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: #fafafa;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.payAllHeader {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.payAllTitle {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 600;
+}
+
+.payAllHint {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.45;
+}
+
+.payAllTotals {
+  display: grid;
+  gap: 0.25rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid #eee;
+}
+
+.payAllTotalRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 1.05rem;
+}
+
+.eventBillingList {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.eventBillingCompetitionTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 0.3rem;
+}
+
+.eventBillingHorseLines {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.eventBillingHorseLine {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 1rem;
+  color: #444;
+  line-height: 1.4;
+}
+
+.eventBillingAmount {
+  font-weight: 600;
+  color: #111;
+  white-space: nowrap;
+}
+
+.eventPayRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chargePreview {
+  font-size: 0.85rem;
+  color: #555;
 }
 
 .payBtn {
   padding: 0.55rem 1rem;
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   cursor: pointer;
   border: none;
   background: #166534;
@@ -259,7 +340,7 @@
 }
 
 .competitionFee {
-  font-size: 0.8rem;
+  font-size: 0.98rem;
   color: #444;
   font-weight: 600;
 }
@@ -383,10 +464,10 @@
 }
 
 .competitionHeight {
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   color: #444;
   background: #f3f4f6;
-  padding: 0.1rem 0.45rem;
+  padding: 0.12rem 0.5rem;
   border-radius: 4px;
   font-weight: 600;
 }
@@ -409,8 +490,8 @@
 .entryActionBtn {
   border: 1px solid #ccc;
   border-radius: 6px;
-  padding: 0.3rem 0.55rem;
-  font-size: 0.8rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.95rem;
   background: #fff;
   cursor: pointer;
   color: #333;
@@ -440,7 +521,7 @@
   border: 1px solid #111;
   border-radius: 6px;
   padding: 0.3rem 0.55rem;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   background: #111;
   color: #fff;
   cursor: pointer;
@@ -455,6 +536,35 @@
   cursor: not-allowed;
 }
 
+.entryPayBtn {
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: #166534;
+  color: #fff;
+}
+
+.entryPayBtn:hover:not(:disabled) {
+  background: #14532d;
+}
+
+.entryPayBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.entryFeeBadge {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #9a3412;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+}
+
 .changeHorsePanel {
   width: 100%;
   margin-top: 0.25rem;
@@ -466,7 +576,7 @@
 
 .entryLockedHint {
   margin: 0.25rem 0 0;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #666;
   font-style: italic;
 }
@@ -497,7 +607,7 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   padding: 0.45rem 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   cursor: pointer;
 }
 
@@ -527,13 +637,13 @@
 
 .competitionDeadline {
   margin: 0 0 0.45rem;
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   color: #555;
 }
 
 .competitionDeadlineClosed {
   margin: 0 0 0.45rem;
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   color: #9a3412;
   font-weight: 600;
 }
@@ -548,25 +658,25 @@
 
 .competitionName {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1.12rem;
 }
 
 .tourLevel {
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   color: #666;
   background: #eee;
-  padding: 0.1rem 0.45rem;
+  padding: 0.12rem 0.5rem;
   border-radius: 4px;
 }
 
 .competitionMeta {
-  font-size: 0.8rem;
+  font-size: 0.98rem;
   color: #666;
   margin: 0 0 0.5rem;
 }
 
 .competitionDay {
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -574,11 +684,11 @@
   background: #f0f0f0;
   border: 1px solid #e6e6e6;
   border-radius: 4px;
-  padding: 0.1rem 0.45rem;
+  padding: 0.12rem 0.5rem;
 }
 
 .competitionHint {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: #666;
   margin: 0.35rem 0;
   font-style: italic;
@@ -590,7 +700,7 @@
 
 .horsePickLabel {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.96rem;
   font-weight: 600;
   color: #444;
   margin-bottom: 0.45rem;
@@ -649,7 +759,7 @@
 }
 
 .horsePickName {
-  font-size: 0.82rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #111;
   line-height: 1.25;
@@ -667,7 +777,7 @@
 }
 
 .horsePickStatus {
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #166534;
 }
@@ -684,8 +794,11 @@
 }
 
 .registeredHorseBlock {
-  display: grid;
-  gap: 0.35rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .registeredHorseBlock .enteredHorseChip {
@@ -727,7 +840,7 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   padding: 0.4rem 0.65rem;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   background: #fff;
   cursor: pointer;
 }
@@ -749,14 +862,14 @@
 }
 
 .slotsHint {
-  font-size: 0.8rem;
+  font-size: 0.96rem;
   color: #555;
   margin: 0 0 0.45rem;
 }
 
 .selectionHint {
   margin: 0.4rem 0 0;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #444;
 }
 
@@ -767,7 +880,7 @@
 }
 
 .registeredInline {
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: #166534;
   font-weight: 500;
   margin: 0.25rem 0 0;
@@ -777,7 +890,7 @@
   margin-top: 0.5rem;
   padding: 0.55rem 1rem;
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   cursor: pointer;
   border: none;
   background: #111;
@@ -801,7 +914,7 @@
 
 .registerBlockedReason {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: #92400e;
   line-height: 1.4;
 }

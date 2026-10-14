@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { ApiRequestError } from '@/lib/api/api-error';
 import { clearAccessToken, getMe, patchMe } from '@/lib/api/auth';
@@ -9,8 +10,13 @@ import {
   EQUESTRIAN_CLUBS,
   getEquestrianClubLabel,
 } from '@/lib/constants/equestrianClubs';
+import {
+  COUNTRIES,
+  getCountryByCode,
+  getCountryLabel,
+  resolveCountryCode,
+} from '@/lib/constants/countries';
 import { getAccessToken, redirectToLogin } from '@/lib/auth/token';
-import EntryDuesBlock from '@/components/rider-profile/EntryDuesBlock';
 import {
   MyEventsProvider,
   UpcomingEventsSection,
@@ -18,25 +24,57 @@ import {
 } from '@/components/rider-profile/MyEventsSection';
 import MembershipBlock from '@/components/rider-profile/MembershipBlock';
 import MyHorsesSection from '@/components/rider-profile/MyHorsesSection';
+import { toGeorgianScript } from '@/lib/utils/georgianTransliterate';
+import { capitalizeName } from '@/lib/utils/capitalizeName';
+import {
+  ageFromBirthDate,
+  formatDisplayDate,
+  toDateInputValue,
+} from '@/lib/utils/formatDisplayDate';
 import classes from '@/styles/rider-profile/riderProfile.module.css';
 
 const EDITABLE_FIELDS = [
   'name',
+  'name_ka',
   'phone',
   'email',
   'country',
+  'country_ka',
+  'birth_date',
   'age',
   'club',
   'equestrian_club',
 ];
 
+const GEORGIAN_FIELDS = new Set(['name_ka']);
+
+function riderBirthDate(rider) {
+  return toDateInputValue(
+    rider?.birth_date || rider?.date_of_birth || ''
+  );
+}
+
+function riderAge(rider) {
+  const derived = ageFromBirthDate(riderBirthDate(rider));
+  if (derived !== '') return derived;
+  return rider?.age != null && rider.age !== '' ? rider.age : '';
+}
+
 function riderToForm(rider) {
+  const country = getCountryByCode(
+    resolveCountryCode(rider?.country, rider?.country_ka)
+  );
+  const birthDate = riderBirthDate(rider);
+  const derivedAge = ageFromBirthDate(birthDate);
   return {
     name: rider?.name ?? '',
+    name_ka: rider?.name_ka ?? '',
     phone: rider?.phone ?? '',
     email: rider?.email ?? '',
-    country: rider?.country ?? '',
-    age: rider?.age ?? '',
+    country: country.en,
+    country_ka: country.ka,
+    birth_date: birthDate,
+    age: derivedAge !== '' ? derivedAge : (rider?.age ?? ''),
     club: rider?.club ?? '',
     equestrian_club: rider?.equestrian_club ?? '',
     image: rider?.image ?? '',
@@ -95,6 +133,7 @@ function getInitials(name) {
 }
 
 export default function RiderProfileCabinet() {
+  const { t, i18n } = useTranslation('riderProfile');
   const router = useRouter();
   const photoInputId = useId();
   const fileInputRef = useRef(null);
@@ -144,10 +183,10 @@ export default function RiderProfileCabinet() {
           if (e.status === 403) {
             setNotFound(true);
           } else if (e.status !== 401) {
-            setLoadError(e.message || 'Failed to load profile');
+            setLoadError(e.message || t('profile.loadFailed'));
           }
         } else {
-          setLoadError('Could not connect to the server');
+          setLoadError(t('common.connectionError'));
         }
       } finally {
         setLoading(false);
@@ -198,7 +237,17 @@ export default function RiderProfileCabinet() {
   };
 
   const handleChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    const next = GEORGIAN_FIELDS.has(field) ? toGeorgianScript(value) : value;
+    setForm((prev) => {
+      const updated = { ...prev, [field]: next };
+      if (field === 'equestrian_club' && next !== 'other') {
+        updated.club = '';
+      }
+      if (field === 'birth_date') {
+        updated.age = ageFromBirthDate(next);
+      }
+      return updated;
+    });
   };
 
   const handleSave = async (e) => {
@@ -244,9 +293,9 @@ export default function RiderProfileCabinet() {
       setEditing(false);
     } catch (err) {
       if (err instanceof ApiRequestError && err.status !== 401) {
-        setSaveError(err.message || 'Failed to save profile');
+        setSaveError(err.message || t('profile.saveFailed'));
       } else if (!(err instanceof ApiRequestError)) {
-        setSaveError('Could not connect to the server');
+        setSaveError(t('common.connectionError'));
       }
     } finally {
       setSaving(false);
@@ -254,16 +303,16 @@ export default function RiderProfileCabinet() {
   };
 
   if (loading) {
-    return <div className={classes.loading}>Loading...</div>;
+    return <div className={classes.loading}>{t('common.loading')}</div>;
   }
 
   if (notFound) {
     return (
       <div className={classes.container}>
         <div className={classes.notFound}>
-          <p>Profile not found</p>
+          <p>{t('profile.notFound')}</p>
           <button type="button" className={classes.secondaryBtn} onClick={handleLogout}>
-            Log out
+            {t('profile.logOut')}
           </button>
         </div>
       </div>
@@ -275,7 +324,7 @@ export default function RiderProfileCabinet() {
       <div className={classes.container}>
         <p className={classes.error}>{loadError}</p>
         <button type="button" className={classes.secondaryBtn} onClick={() => window.location.reload()}>
-          Try again
+          {t('common.tryAgain')}
         </button>
       </div>
     );
@@ -287,9 +336,9 @@ export default function RiderProfileCabinet() {
   return (
     <div className={classes.container}>
       <div className={classes.header}>
-        <h1 className={classes.title}>Rider dashboard</h1>
+        <h1 className={classes.title}>{t('profile.title')}</h1>
         <button type="button" className={classes.logoutBtn} onClick={handleLogout}>
-          Log out
+          {t('profile.logOut')}
         </button>
       </div>
 
@@ -298,12 +347,14 @@ export default function RiderProfileCabinet() {
           {rider?.image && !imageError ? (
             <img
               src={rider.image}
-              alt={rider.name || 'Photo'}
+              alt={capitalizeName(rider.name) || t('profile.photoAlt')}
               className={classes.avatar}
               onError={() => setImageError(true)}
             />
           ) : (
-            <div className={classes.avatarPlaceholder}>{getInitials(rider?.name)}</div>
+            <div className={classes.avatarPlaceholder}>
+              {getInitials(rider?.name)}
+            </div>
           )}
         </div>
 
@@ -312,7 +363,7 @@ export default function RiderProfileCabinet() {
             {editing ? (
               <form className={classes.form} onSubmit={handleSave}>
             <div className={classes.formField}>
-              <label htmlFor="name">Name</label>
+              <label htmlFor="name">{t('profile.name')}</label>
               <input
                 id="name"
                 value={form.name}
@@ -320,25 +371,59 @@ export default function RiderProfileCabinet() {
               />
             </div>
             <div className={classes.formField}>
-              <label htmlFor="age">Age</label>
+              <label htmlFor="name_ka">{t('profile.nameKa')}</label>
+              <input
+                id="name_ka"
+                value={form.name_ka}
+                onChange={(e) => handleChange('name_ka', e.target.value)}
+                lang="ka"
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </div>
+            <div className={classes.formField}>
+              <label htmlFor="birth_date">{t('profile.birthDate')}</label>
+              <input
+                id="birth_date"
+                type="date"
+                max={toDateInputValue(new Date())}
+                value={form.birth_date}
+                onChange={(e) => handleChange('birth_date', e.target.value)}
+              />
+            </div>
+            <div className={classes.formField}>
+              <label htmlFor="age">{t('profile.age')}</label>
               <input
                 id="age"
                 type="number"
                 min="0"
+                readOnly
                 value={form.age}
-                onChange={(e) => handleChange('age', e.target.value)}
               />
             </div>
             <div className={classes.formField}>
-              <label htmlFor="country">Country</label>
-              <input
+              <label htmlFor="country">{t('profile.country')}</label>
+              <select
                 id="country"
-                value={form.country}
-                onChange={(e) => handleChange('country', e.target.value)}
-              />
+                value={resolveCountryCode(form.country, form.country_ka)}
+                onChange={(e) => {
+                  const next = getCountryByCode(e.target.value);
+                  setForm((prev) => ({
+                    ...prev,
+                    country: next.en,
+                    country_ka: next.ka,
+                  }));
+                }}
+              >
+                {COUNTRIES.map((country) => (
+                  <option key={country.code} value={country.code}>
+                    {getCountryLabel(country.en, country.ka, i18n.language)}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className={classes.formField}>
-              <label htmlFor="phone">Phone</label>
+              <label htmlFor="phone">{t('profile.phone')}</label>
               <input
                 id="phone"
                 value={form.phone}
@@ -346,7 +431,7 @@ export default function RiderProfileCabinet() {
               />
             </div>
             <div className={classes.formField}>
-              <label htmlFor="email">Email</label>
+              <label htmlFor="email">{t('profile.email')}</label>
               <input
                 id="email"
                 type="email"
@@ -355,18 +440,12 @@ export default function RiderProfileCabinet() {
               />
             </div>
             {accountEmail && accountEmail !== form.email && (
-              <p className={classes.label}>Account email: {accountEmail}</p>
+              <p className={classes.label}>
+                {t('profile.accountEmailValue', { email: accountEmail })}
+              </p>
             )}
             <div className={classes.formField}>
-              <label htmlFor="club">Club (text)</label>
-              <input
-                id="club"
-                value={form.club}
-                onChange={(e) => handleChange('club', e.target.value)}
-              />
-            </div>
-            <div className={classes.formField}>
-              <label htmlFor="equestrian_club">Equestrian club</label>
+              <label htmlFor="equestrian_club">{t('profile.equestrianClub')}</label>
               <select
                 id="equestrian_club"
                 value={form.equestrian_club}
@@ -375,14 +454,26 @@ export default function RiderProfileCabinet() {
                 <option value="">—</option>
                 {EQUESTRIAN_CLUBS.map((club) => (
                   <option key={club.value} value={club.value}>
-                    {club.label}
+                    {club.value === 'other' ? t('profile.otherClub') : club.label}
                   </option>
                 ))}
               </select>
             </div>
+            {form.equestrian_club === 'other' && (
+              <div className={classes.formField}>
+                <label htmlFor="club">{t('profile.clubName')}</label>
+                <input
+                  id="club"
+                  value={form.club}
+                  onChange={(e) => handleChange('club', e.target.value)}
+                  placeholder={t('profile.clubNamePlaceholder')}
+                  autoComplete="off"
+                />
+              </div>
+            )}
 
             <div className={classes.formField}>
-              <span className={classes.fileFieldLabel}>Photo</span>
+              <span className={classes.fileFieldLabel}>{t('common.photo')}</span>
               <input
                 id={photoInputId}
                 ref={fileInputRef}
@@ -410,12 +501,14 @@ export default function RiderProfileCabinet() {
                       className={classes.filePreview}
                     />
                     <span className={classes.fileDropzoneOverlay}>
-                      Change photo
+                      {t('common.changePhoto')}
                     </span>
                   </>
                 ) : (
                   <span className={classes.fileDropzoneEmpty}>
-                    <span className={classes.fileDropzoneTitle}>Add photo</span>
+                    <span className={classes.fileDropzoneTitle}>
+                      {t('common.addPhoto')}
+                    </span>
                     <span className={classes.fileDropzoneHint}>JPG / PNG</span>
                   </span>
                 )}
@@ -429,7 +522,7 @@ export default function RiderProfileCabinet() {
                     handleChange('image', '');
                   }}
                 >
-                  Remove photo
+                  {t('common.removePhoto')}
                 </button>
               )}
             </div>
@@ -438,7 +531,7 @@ export default function RiderProfileCabinet() {
 
             <div className={classes.actions}>
               <button type="submit" className={classes.primaryBtn} disabled={saving}>
-                {saving ? 'Saving...' : 'Save'}
+                {saving ? t('common.saving') : t('common.save')}
               </button>
               <button
                 type="button"
@@ -446,7 +539,7 @@ export default function RiderProfileCabinet() {
                 onClick={handleCancel}
                 disabled={saving}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           </form>
@@ -454,50 +547,68 @@ export default function RiderProfileCabinet() {
               <>
                 <div className={classes.fieldGrid}>
               <div className={classes.fieldRow}>
-                <span className={classes.label}>Name</span>
-                <span className={classes.value}>{rider?.name || '—'}</span>
-              </div>
-              <div className={classes.fieldRow}>
-                <span className={classes.label}>Age</span>
+                <span className={classes.label}>{t('profile.name')}</span>
                 <span className={classes.value}>
-                  {rider?.age != null && rider.age !== '' ? rider.age : '—'}
+                  {capitalizeName(rider?.name) || '—'}
                 </span>
               </div>
               <div className={classes.fieldRow}>
-                <span className={classes.label}>Country</span>
-                <span className={classes.value}>{rider?.country || '—'}</span>
+                <span className={classes.label}>{t('profile.nameKa')}</span>
+                <span className={classes.value}>{rider?.name_ka || '—'}</span>
               </div>
               <div className={classes.fieldRow}>
-                <span className={classes.label}>Phone</span>
+                <span className={classes.label}>{t('profile.birthDate')}</span>
+                <span className={classes.value}>
+                  {riderBirthDate(rider)
+                    ? formatDisplayDate(riderBirthDate(rider), i18n.language)
+                    : '—'}
+                </span>
+              </div>
+              <div className={classes.fieldRow}>
+                <span className={classes.label}>{t('profile.age')}</span>
+                <span className={classes.value}>{riderAge(rider) || '—'}</span>
+              </div>
+              <div className={classes.fieldRow}>
+                <span className={classes.label}>{t('profile.country')}</span>
+                <span className={classes.value}>
+                  {getCountryLabel(
+                    rider?.country,
+                    rider?.country_ka,
+                    i18n.language
+                  )}
+                </span>
+              </div>
+              <div className={classes.fieldRow}>
+                <span className={classes.label}>{t('profile.phone')}</span>
                 <span className={classes.value}>{rider?.phone || '—'}</span>
               </div>
               <div className={classes.fieldRow}>
-                <span className={classes.label}>Email</span>
+                <span className={classes.label}>{t('profile.email')}</span>
                 <span className={classes.value}>
                   {rider?.email || accountEmail || '—'}
                 </span>
               </div>
               {accountEmail && rider?.email && accountEmail !== rider.email && (
                 <div className={classes.fieldRow}>
-                  <span className={classes.label}>Account email</span>
+                  <span className={classes.label}>{t('profile.accountEmail')}</span>
                   <span className={classes.value}>{accountEmail}</span>
                 </div>
               )}
               <div className={classes.fieldRow}>
-                <span className={classes.label}>Club (text)</span>
-                <span className={classes.value}>{rider?.club || '—'}</span>
-              </div>
-              <div className={classes.fieldRow}>
-                <span className={classes.label}>Equestrian club</span>
+                <span className={classes.label}>{t('profile.equestrianClub')}</span>
                 <span className={classes.value}>
-                  {getEquestrianClubLabel(rider?.equestrian_club)}
+                  {getEquestrianClubLabel(
+                    rider?.equestrian_club,
+                    rider?.club,
+                    t
+                  )}
                 </span>
               </div>
             </div>
 
             <div className={classes.actions}>
               <button type="button" className={classes.primaryBtn} onClick={handleEdit}>
-                Edit profile
+                {t('profile.edit')}
               </button>
             </div>
               </>
@@ -508,9 +619,6 @@ export default function RiderProfileCabinet() {
         </div>
       </div>
 
-      <div className={classes.entryDuesBelow}>
-        <EntryDuesBlock />
-      </div>
       <MyEventsProvider>
         <UpcomingEventsSection />
         <MyHorsesSection />

@@ -2,12 +2,14 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { ApiRequestError } from '@/lib/api/api-error';
 import { login } from '@/lib/api/auth';
 import classes from '@/styles/auth/auth.module.css';
 
 function LoginForm() {
+  const { t } = useTranslation('auth');
   const params = useSearchParams();
   const router = useRouter();
 
@@ -16,11 +18,11 @@ function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [errorKey, setErrorKey] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
+    setErrorKey('');
 
     try {
       setLoading(true);
@@ -28,9 +30,9 @@ function LoginForm() {
       router.push('/rider-profile/');
     } catch (err) {
       if (err instanceof ApiRequestError) {
-        setError(err.message || 'შესვლა ვერ მოხერხდა');
+        setErrorKey('login.loginFailed');
       } else {
-        setError('სერვერთან კავშირი ვერ დამყარდა');
+        setErrorKey('login.connectionError');
       }
     } finally {
       setLoading(false);
@@ -40,20 +42,20 @@ function LoginForm() {
   return (
     <div className={classes.page}>
       <div className={classes.shell}>
-        <h1 className={`${classes.title} ${classes.loginTitleOnly}`}>შესვლა</h1>
+        <h1 className={`${classes.title} ${classes.loginTitleOnly}`}>
+          {t('login.title')}
+        </h1>
 
         {registered === '1' && (
-          <div className={classes.success}>
-            რეგისტრაცია წარმატებულია. შედით თქვენი ელ. ფოსტით და პაროლით.
-          </div>
+          <div className={classes.success}>{t('login.registeredSuccess')}</div>
         )}
 
         <form onSubmit={handleLogin} className={classes.form}>
           <div className={classes.formField}>
-            <label htmlFor="login-email">ელ. ფოსტა</label>
+            <label htmlFor="login-email">{t('login.email')}</label>
             <input
               id="login-email"
-              placeholder="ელ. ფოსტა"
+              placeholder={t('login.email')}
               type="email"
               autoComplete="email"
               value={email}
@@ -63,10 +65,10 @@ function LoginForm() {
           </div>
 
           <div className={classes.formField}>
-            <label htmlFor="login-password">პაროლი</label>
+            <label htmlFor="login-password">{t('login.password')}</label>
             <input
               id="login-password"
-              placeholder="პაროლი"
+              placeholder={t('login.password')}
               type="password"
               autoComplete="current-password"
               value={password}
@@ -75,10 +77,14 @@ function LoginForm() {
             />
           </div>
 
-          {error && <p className={classes.error}>{error}</p>}
+          {errorKey && <p className={classes.error}>{t(errorKey)}</p>}
 
-          <button type="submit" disabled={loading} className={classes.primaryBtn}>
-            {loading ? 'შესვლა...' : 'შესვლა'}
+          <button
+            type="submit"
+            disabled={loading}
+            className={classes.primaryBtn}
+          >
+            {loading ? t('login.submitting') : t('login.submit')}
           </button>
         </form>
       </div>
@@ -87,11 +93,13 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
+  const { t } = useTranslation('auth');
+
   return (
     <Suspense
       fallback={
         <div className={classes.page}>
-          <p className={classes.loading}>იტვირთება...</p>
+          <p className={classes.loading}>{t('login.loading')}</p>
         </div>
       }
     >

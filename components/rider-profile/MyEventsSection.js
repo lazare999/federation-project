@@ -11,35 +11,104 @@ import {
   useState,
 } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 import { ApiRequestError } from '@/lib/api/api-error';
 import {
   deleteMyEventEntry,
   getMyEvents,
   getMyHorses,
+  payForEvent,
   registerForEvent,
   updateMyEventEntry,
 } from '@/lib/api/auth';
 import classes from '@/styles/rider-profile/myEvents.module.css';
-import { toEnglishLevelLabel } from '@/lib/constants/horseLevels';
+import { getHorseLevelLabel } from '@/lib/constants/horseLevels';
+import { capitalizeName } from '@/lib/utils/capitalizeName';
+import { formatDisplayDate } from '@/lib/utils/formatDisplayDate';
+import { rewriteAgeBlockedReason } from '@/lib/utils/rewriteAgeBlockedReason';
+import {
+  formatFaults,
+  formatJumpoff,
+  formatPlaceOrStatus,
+  formatPoints,
+  formatResultTime,
+  getVisibleResultColumns,
+  hasRecordedResult,
+  isClassifiedResult,
+  normalizeCompetitionResult,
+} from '@/lib/utils/competitionResults';
 
-function formatEntryResult(entry) {
-  const parts = [];
-  if (entry.place != null && entry.place !== '') {
-    parts.push(`Place: ${entry.place}`);
+function translateBillingReason(reason, t, language) {
+  if (!reason) return '';
+  const isKa = String(language || '').toLowerCase().startsWith('ka');
+  if (isKa) return String(reason);
+
+  const fragments = [
+    ['შეჯიბრის entry', t('events.billingCompetitionEntry')],
+    ['უმაღლესი ტურის საფასური', t('events.billingHighestTourFee')],
+  ];
+
+  let text = String(reason);
+  for (const [source, translated] of fragments) {
+    if (text.includes(source)) {
+      text = text.split(source).join(translated);
+    }
   }
-  if (entry.faults != null && entry.faults !== '') {
-    parts.push(`Faults: ${entry.faults}`);
-  }
-  if (entry.time != null && entry.time !== '') {
-    parts.push(`Time: ${entry.time}`);
-  }
-  return parts.length > 0 ? parts.join(' · ') : null;
+  return text;
 }
 
-function formatApiError(err, fallback = 'Request failed') {
+function formatEntryResult(entry, competition, t) {
+  const result = normalizeCompetitionResult(entry);
+  if (!hasRecordedResult(entry)) return null;
+
+  const placeOrStatus = formatPlaceOrStatus(result);
+  if (!isClassifiedResult(result)) {
+    return result.notes
+      ? `${placeOrStatus} · ${result.notes}`
+      : placeOrStatus;
+  }
+
+  const secondsLabel = t('events.secondsShort');
+  const columns = getVisibleResultColumns(competition?.scoring_format, [
+    result,
+  ]);
+  const parts = [t('events.place', { value: placeOrStatus })];
+
+  if (columns.faults && result.faults != null) {
+    parts.push(t('events.faults', { value: formatFaults(result.faults) }));
+  }
+  if (columns.time && result.time != null) {
+    parts.push(
+      t('events.time', {
+        value: formatResultTime(result.time, secondsLabel),
+      })
+    );
+  }
+  if (
+    columns.jumpoff &&
+    (result.jumpoffFaults != null || result.jumpoffTime != null)
+  ) {
+    parts.push(
+      t('events.jumpoff', {
+        value: formatJumpoff(result, secondsLabel),
+      })
+    );
+  }
+  if (columns.points) {
+    const points = formatPoints(result);
+    if (points !== '—') {
+      parts.push(t('events.points', { value: points }));
+    }
+  }
+  if (result.notes) parts.push(result.notes);
+
+  return parts.join(' · ');
+}
+
+function formatApiError(err, t, fallbackKey = 'common.requestFailed') {
   if (!(err instanceof ApiRequestError)) {
-    return 'Could not connect to the server';
+    return t('common.connectionError');
   }
   const parts = [];
   if (err.data?.detail) parts.push(String(err.data.detail));
@@ -47,12 +116,184 @@ function formatApiError(err, fallback = 'Request failed') {
     parts.push(...err.data.errors.map(String));
   }
   if (parts.length) return parts.join(' ');
-  return err.message || fallback;
+  return err.message || t(fallbackKey);
 }
 
 function formatMoney(amount, currency = 'GEL') {
   if (amount == null || amount === '') return null;
   return `${amount} ${currency}`;
+}
+
+function getPaymentRedirectUrl(response) {
+  return (
+    response?.redirect_url ||
+    response?.payment?.redirect_url ||
+    response?.pending_payment?.redirect_url ||
+    null
+  );
+}
+
+function getEventPendingRedirect(event) {
+  return event?.pending_payment?.redirect_url || null;
+}
+
+function getCompetitionLabel(value, t) {
+  const fallback = t ? t('events.competition') : 'Competition';
+  if (value == null || value === '') return fallback;
+  if (typeof value === 'string') return value;
+  return (
+    value.name ||
+    value.competition_name ||
+    value.title ||
+    value.tour_level_display ||
+    fallback
+  );
+}
+
+function firstAmount(...values) {
+  for (const value of values) {
+    if (value != null && value !== '') return value;
+  }
+  return null;
+}
+
+function getCompetitionFee(comp, horseRow) {
+  if (comp && typeof comp === 'object') {
+    const fee = firstAmount(
+      comp.due,
+      comp.amount,
+      comp.payable,
+      comp.payable_amount,
+      comp.charge
+    );
+    if (fee != null) return fee;
+  }
+  const comps = horseRow?.competitions;
+  if (Array.isArray(comps) && comps.length === 1) {
+    return horseRow.due;
+  }
+  return horseRow?.due ?? null;
+}
+
+function getCompetitionPaidAmount(comp, horseRow) {
+  if (comp && typeof comp === 'object') {
+    const fee = firstAmount(
+      comp.already_paid,
+      comp.paid_amount,
+      comp.amount_paid,
+      comp.paid,
+      comp.due,
+      comp.amount
+    );
+    if (fee != null) return fee;
+  }
+  return firstAmount(
+    horseRow?.already_paid,
+    horseRow?.paid_amount,
+    horseRow?.amount_paid,
+    horseRow?.paid,
+    horseRow?.due
+  );
+}
+
+function findCompetitionByBillingComp(competitions, comp) {
+  if (!comp) return null;
+  const list = competitions ?? [];
+  if (typeof comp !== 'object') {
+    const name = String(comp);
+    return (
+      list.find((c) => c.competition_name === name) ?? null
+    );
+  }
+  const id = comp.id ?? comp.competition_id;
+  if (id != null) {
+    const byId = list.find(
+      (c) => Number(c.competition_id) === Number(id)
+    );
+    if (byId) return byId;
+  }
+  const name = getCompetitionLabel(comp);
+  return list.find((c) => c.competition_name === name) ?? null;
+}
+
+function getCompetitionListFee(comp, horseRow, fallbackCompetition) {
+  if (comp && typeof comp === 'object') {
+    const fee = comp.entry_fee ?? comp.list_fee ?? null;
+    if (fee != null && fee !== '') return fee;
+  }
+  return (
+    fallbackCompetition?.entry_fee ??
+    horseRow?.entry_fee ??
+    null
+  );
+}
+
+/** Invert horse-centric billing into competition → horses + fees. */
+function groupBillingByCompetition(
+  billing,
+  competitions = [],
+  t,
+  getAmount = getCompetitionFee
+) {
+  const groups = new Map();
+  const horseFallback = t ? t('common.horse') : 'Horse';
+  const feeFallback = t ? t('events.entryFee') : 'Entry fee';
+
+  for (const row of billing || []) {
+    const comps = Array.isArray(row.competitions) ? row.competitions : [];
+    const list = comps.length > 0 ? comps : [null];
+
+    list.forEach((comp, index) => {
+      const matchedCompetition = findCompetitionByBillingComp(
+        competitions,
+        comp
+      );
+      const competitionName =
+        comp == null
+          ? row.reason || feeFallback
+          : getCompetitionLabel(comp, t);
+      const key = `${competitionName}::${
+        typeof comp === 'object' && comp
+          ? comp.id ?? comp.competition_id ?? index
+          : index
+      }`;
+
+      if (!groups.has(key)) {
+        groups.set(key, {
+          key,
+          competitionName,
+          lines: [],
+        });
+      }
+
+      groups.get(key).lines.push({
+        horseName: row.horse_name || horseFallback,
+        due: getAmount(comp, row),
+        listFee: getCompetitionListFee(comp, row, matchedCompetition),
+        fallbackDue:
+          getAmount(null, row) ??
+          getAmount(comp, row) ??
+          row.due,
+        singleCompetition: list.length === 1,
+        reason: row.reason,
+      });
+    });
+  }
+
+  return [...groups.values()].map((group) => ({
+    ...group,
+    lines: group.lines.map((line) => ({
+      horseName: line.horseName,
+      listFee: line.listFee,
+      due:
+        line.due != null && line.due !== ''
+          ? line.due
+          : line.singleCompetition
+            ? line.fallbackDue
+            : null,
+      reason: line.reason,
+    })),
+  }));
 }
 
 function formatHeight(height) {
@@ -63,21 +304,50 @@ function formatHeight(height) {
   return `${raw} cm`;
 }
 
+function findHeightValue(obj) {
+  if (obj == null || typeof obj !== 'object') return null;
+  const keys = [
+    'height',
+    'height_cm',
+    'height_display',
+    'jump_height',
+    'class_height',
+    'fence_height',
+    'obstacle_height',
+    'course_height',
+    'max_height',
+  ];
+  for (const key of keys) {
+    const value = obj[key];
+    if (value != null && value !== '' && typeof value !== 'object') {
+      return value;
+    }
+  }
+  return null;
+}
+
+function resolveCompetitionHeight(entry, competition) {
+  return formatHeight(
+    findHeightValue(entry) ??
+      findHeightValue(entry?.competition) ??
+      findHeightValue(competition)
+  );
+}
+
 function formatStartTime(startTime) {
   if (!startTime) return null;
   return String(startTime).slice(0, 5);
 }
 
-function resolveEntryDetails(entry, competition) {
-  const height = formatHeight(entry.height ?? competition?.height);
-  const tour =
-    toEnglishLevelLabel(
-      entry.tour_level_display ||
-        competition?.tour_level_display ||
-        entry.tour_level ||
-        competition?.tour_level ||
-        ''
-    ) || null;
+function resolveEntryDetails(entry, competition, t) {
+  const height = resolveCompetitionHeight(entry, competition);
+  const tourRaw =
+    entry.tour_level_display ||
+    competition?.tour_level_display ||
+    entry.tour_level ||
+    competition?.tour_level ||
+    '';
+  const tour = tourRaw ? getHorseLevelLabel(tourRaw, t) || null : null;
   const date = entry.competition_date || competition?.competition_date || null;
   const time = formatStartTime(entry.start_time || competition?.start_time);
   const feeLabel = formatMoney(
@@ -91,11 +361,7 @@ function resolveEntryDetails(entry, competition) {
 }
 
 function entryHasResults(entry) {
-  return (
-    (entry.place != null && entry.place !== '') ||
-    (entry.faults != null && entry.faults !== '') ||
-    (entry.time != null && entry.time !== '')
-  );
+  return hasRecordedResult(entry);
 }
 
 function isEntryUnpaid(entry) {
@@ -199,13 +465,14 @@ function alternativeHorses(competition, currentHorseId) {
   );
 }
 
-function formatRegistrationClosesAt(value) {
+function formatRegistrationClosesAt(value, t, language) {
   if (!value) return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
 
   try {
-    const formatted = new Intl.DateTimeFormat('en-GB', {
+    const locale = language?.startsWith('ka') ? 'ka-GE' : 'en-GB';
+    const formatted = new Intl.DateTimeFormat(locale, {
       timeZone: 'Asia/Tbilisi',
       day: '2-digit',
       month: 'short',
@@ -214,7 +481,7 @@ function formatRegistrationClosesAt(value) {
       minute: '2-digit',
       hour12: false,
     }).format(date);
-    return `${formatted} (Tbilisi)`;
+    return t('events.tbilisiTime', { datetime: formatted });
   } catch {
     return date.toLocaleString();
   }
@@ -233,7 +500,12 @@ function isCompetitionRegistrationOpen(competition) {
   return true;
 }
 
-function resolveRegisterGate(event, canRegisterForEvents, globalBlockedReason) {
+function resolveRegisterGate(
+  event,
+  canRegisterForEvents,
+  globalBlockedReason,
+  t
+) {
   const competitions = event?.competitions ?? [];
   const anyCompetitionOpen =
     competitions.length === 0
@@ -241,22 +513,20 @@ function resolveRegisterGate(event, canRegisterForEvents, globalBlockedReason) {
       : competitions.some((c) => isCompetitionRegistrationOpen(c));
 
   const globalBlocked = canRegisterForEvents === false;
-  // Membership-style block: can_register false while event registration still marked open.
   const membershipBlocked =
     event?.can_register === false && event?.registration_open === true;
-  // Everything closed (deadline): no open competitions left.
   const allCompetitionsClosed =
     event?.can_register === false && !anyCompetitionOpen;
 
   const blocked = globalBlocked || membershipBlocked || allCompetitionsClosed;
 
-  const reason =
+  const reason = rewriteAgeBlockedReason(
     event?.register_blocked_reason ||
-    (allCompetitionsClosed
-      ? 'Registration is closed for all competitions on this event. Unpaid fees can still be paid in Entry dues.'
-      : null) ||
-    globalBlockedReason ||
-    'შეჯიბრზე რეგისტრაციისთვის აქტიური საწევრო აუცილებელია. განაახლეთ საწევრო კაბინეტში.';
+      (allCompetitionsClosed ? t('events.allClosed') : null) ||
+      globalBlockedReason ||
+      t('events.membershipRequired'),
+    t
+  );
 
   return {
     blocked,
@@ -275,7 +545,173 @@ function MembershipRegisterBlocked({ reason, className }) {
   );
 }
 
-function EntryManageActions({ eventId, entry, competition, onUpdated }) {
+function amountsEqual(a, b) {
+  if (a == null || a === '' || b == null || b === '') return false;
+  const na = Number(a);
+  const nb = Number(b);
+  if (Number.isFinite(na) && Number.isFinite(nb)) return na === nb;
+  return String(a) === String(b);
+}
+
+function resolveEntryListFee(entry, competition) {
+  return entry?.entry_fee ?? competition?.entry_fee ?? null;
+}
+
+function resolveEntryListCurrency(entry, competition, fallbackCurrency = 'GEL') {
+  return (
+    entry?.entry_fee_currency ||
+    competition?.entry_fee_currency ||
+    fallbackCurrency
+  );
+}
+
+function findBillingListFeeForEntry(billing, entry, competition) {
+  const entryCompId = entry?.competition_id ?? competition?.competition_id;
+  const entryCompName =
+    entry?.competition_name || competition?.competition_name || '';
+
+  for (const row of billing || []) {
+    const horseMatch =
+      (entry?.horse_id != null &&
+        row?.horse_id != null &&
+        Number(row.horse_id) === Number(entry.horse_id)) ||
+      (entry?.horse_name &&
+        row?.horse_name &&
+        String(row.horse_name).toLowerCase() ===
+          String(entry.horse_name).toLowerCase());
+    if (!horseMatch) continue;
+
+    const comps = Array.isArray(row.competitions) ? row.competitions : [];
+    const match = comps.find((comp) => {
+      if (!comp || typeof comp !== 'object') return false;
+      const compId = comp.id ?? comp.competition_id;
+      if (
+        entryCompId != null &&
+        compId != null &&
+        Number(compId) === Number(entryCompId)
+      ) {
+        return true;
+      }
+      return (
+        getCompetitionLabel(comp).toLowerCase() ===
+        String(entryCompName).toLowerCase()
+      );
+    });
+    if (match && typeof match === 'object') {
+      const list = match.entry_fee ?? match.list_fee ?? match.fee ?? null;
+      if (list != null && list !== '') return list;
+    }
+  }
+  return null;
+}
+
+function findBillingDueForEntry(billing, entry, competition) {
+  const entryCompId = entry?.competition_id ?? competition?.competition_id;
+  const entryCompName =
+    entry?.competition_name || competition?.competition_name || '';
+
+  for (const row of billing || []) {
+    const horseMatch =
+      (entry?.horse_id != null &&
+        row?.horse_id != null &&
+        Number(row.horse_id) === Number(entry.horse_id)) ||
+      (entry?.horse_name &&
+        row?.horse_name &&
+        String(row.horse_name).toLowerCase() ===
+          String(entry.horse_name).toLowerCase()) ||
+      (entry?.entry_id != null &&
+        row?.entry_id != null &&
+        Number(row.entry_id) === Number(entry.entry_id));
+    if (!horseMatch) continue;
+
+    const comps = Array.isArray(row.competitions) ? row.competitions : [];
+    if (comps.length === 0) {
+      if (row.due != null && row.due !== '') return row.due;
+      continue;
+    }
+
+    const match = comps.find((comp) => {
+      if (!comp || typeof comp !== 'object') {
+        return (
+          String(comp || '').toLowerCase() ===
+          String(entryCompName).toLowerCase()
+        );
+      }
+      const compId = comp.id ?? comp.competition_id;
+      if (
+        entryCompId != null &&
+        compId != null &&
+        Number(compId) === Number(entryCompId)
+      ) {
+        return true;
+      }
+      return (
+        getCompetitionLabel(comp).toLowerCase() ===
+        String(entryCompName).toLowerCase()
+      );
+    });
+
+    if (match && typeof match === 'object') {
+      const due =
+        match.due ??
+        match.amount ??
+        match.payable ??
+        match.payable_amount ??
+        match.charge ??
+        null;
+      if (due != null && due !== '') return due;
+    }
+    if (row.due != null && row.due !== '') return row.due;
+  }
+
+  return (
+    entry?.due ??
+    entry?.amount_due ??
+    entry?.payable ??
+    entry?.payable_amount ??
+    entry?.charge ??
+    null
+  );
+}
+
+function formatFeeWithActualDue(listAmount, dueAmount, currency = 'GEL') {
+  const listLabel = formatMoney(listAmount, currency);
+  const dueLabel = formatMoney(dueAmount, currency);
+  if (!listLabel && !dueLabel) return null;
+  if (!listLabel) return dueLabel;
+  if (!dueLabel || amountsEqual(listAmount, dueAmount)) return listLabel;
+  return `${listLabel} (${dueLabel})`;
+}
+
+function resolveEntryFeeLabel(
+  entry,
+  competition,
+  fallbackCurrency = 'GEL',
+  billing = null
+) {
+  const currency = resolveEntryListCurrency(
+    entry,
+    competition,
+    fallbackCurrency
+  );
+  const listFee =
+    resolveEntryListFee(entry, competition) ??
+    findBillingListFeeForEntry(billing, entry, competition);
+  const dueFee = findBillingDueForEntry(billing, entry, competition);
+  return formatFeeWithActualDue(listFee, dueFee, currency);
+}
+
+function EntryManageActions({
+  eventId,
+  entry,
+  competition,
+  onUpdated,
+  canPay = false,
+  onPay,
+  paying = false,
+  feeLabel,
+}) {
+  const { t, i18n } = useTranslation('riderProfile');
   const [changing, setChanging] = useState(false);
   const [selectedHorseId, setSelectedHorseId] = useState('');
   const [busy, setBusy] = useState(false);
@@ -288,8 +724,12 @@ function EntryManageActions({ eventId, entry, competition, onUpdated }) {
   const registrationOpen = isCompetitionRegistrationOpen(competition);
   const alternatives = alternativeHorses(competition, entry.horse_id);
   const closesLabel = formatRegistrationClosesAt(
-    competition?.registration_closes_at
+    competition?.registration_closes_at,
+    t,
+    i18n.language
   );
+  const showManage = !locked && registrationOpen;
+  const showPay = Boolean(canPay && onPay && registrationOpen);
 
   const handleChangeHorse = async () => {
     if (!selectedHorseId) return;
@@ -303,7 +743,7 @@ function EntryManageActions({ eventId, entry, competition, onUpdated }) {
       setSelectedHorseId('');
       await onUpdated();
     } catch (err) {
-      setError(formatApiError(err, 'Could not change horse'));
+      setError(formatApiError(err, t, 'events.changeHorseFailed'));
     } finally {
       setBusy(false);
     }
@@ -311,7 +751,10 @@ function EntryManageActions({ eventId, entry, competition, onUpdated }) {
 
   const handleDelete = async () => {
     const confirmed = window.confirm(
-      `Remove ${entry.horse_name || 'this horse'} from ${entry.competition_name || 'this competition'}?`
+      t('events.removeConfirm', {
+        horse: capitalizeName(entry.horse_name) || t('events.thisHorse'),
+        competition: entry.competition_name || t('events.thisCompetition'),
+      })
     );
     if (!confirmed) return;
 
@@ -321,26 +764,16 @@ function EntryManageActions({ eventId, entry, competition, onUpdated }) {
       await deleteMyEventEntry(eventId, entry.entry_id);
       await onUpdated();
     } catch (err) {
-      setError(formatApiError(err, 'Could not delete registration'));
+      setError(formatApiError(err, t, 'events.deleteFailed'));
     } finally {
       setBusy(false);
     }
   };
 
-  if (locked) {
+  if (locked && !showPay) {
     return (
       <p className={classes.entryLockedHint}>
-        Results recorded — changes are locked
-      </p>
-    );
-  }
-
-  if (!registrationOpen) {
-    return (
-      <p className={classes.entryLockedHint}>
-        {closesLabel
-          ? `Registration closed on ${closesLabel}`
-          : 'Registration closed for this competition'}
+        {t('events.resultsLocked')}
       </p>
     );
   }
@@ -348,39 +781,78 @@ function EntryManageActions({ eventId, entry, competition, onUpdated }) {
   return (
     <div className={classes.entryActions}>
       {!changing ? (
-        <div className={classes.entryActionBtns}>
-          <button
-            type="button"
-            className={classes.entryActionBtn}
-            onClick={() => {
-              setChanging(true);
-              setError('');
-              setSelectedHorseId('');
-            }}
-            disabled={busy || alternatives.length === 0}
-            title={
-              alternatives.length === 0
-                ? 'No other eligible horse'
-                : 'Change horse'
-            }
-          >
-            Change horse
-          </button>
-          <button
-            type="button"
-            className={`${classes.entryActionBtn} ${classes.entryActionBtnDanger}`}
-            onClick={handleDelete}
-            disabled={busy}
-          >
-            {busy ? 'Removing…' : 'Remove'}
-          </button>
-        </div>
+        <>
+          <div className={classes.entryActionBtns}>
+            {showManage && (
+              <button
+                type="button"
+                className={classes.entryActionBtn}
+                onClick={() => {
+                  setChanging(true);
+                  setError('');
+                  setSelectedHorseId('');
+                }}
+                disabled={busy || paying || alternatives.length === 0}
+                title={
+                  alternatives.length === 0
+                    ? t('events.noOtherHorse')
+                    : t('events.changeHorse')
+                }
+              >
+                {t('events.changeHorse')}
+              </button>
+            )}
+            {showPay && (
+              <button
+                type="button"
+                className={classes.entryPayBtn}
+                onClick={() => onPay(entry.entry_id)}
+                disabled={busy || paying}
+                title={
+                  feeLabel
+                    ? t('events.payEntryAmount', { amount: feeLabel })
+                    : t('events.payEntry')
+                }
+              >
+                {paying
+                  ? t('events.redirecting')
+                  : feeLabel
+                    ? t('events.payAmount', { amount: feeLabel })
+                    : t('events.pay')}
+              </button>
+            )}
+            {showManage && (
+              <button
+                type="button"
+                className={`${classes.entryActionBtn} ${classes.entryActionBtnDanger}`}
+                onClick={handleDelete}
+                disabled={busy || paying}
+              >
+                {busy ? t('common.removing') : t('common.remove')}
+              </button>
+            )}
+          </div>
+          {!showManage && !locked && (
+            <p className={classes.entryLockedHint}>
+              {closesLabel
+                ? t('events.regClosedOn', { date: closesLabel })
+                : t('events.regClosedComp')}
+            </p>
+          )}
+          {locked && (
+            <p className={classes.entryLockedHint}>
+              {t('events.resultsLockedHorse')}
+            </p>
+          )}
+        </>
       ) : (
         <div className={classes.changeHorsePanel}>
-          <span className={classes.horsePickLabel}>Select new horse</span>
+          <span className={classes.horsePickLabel}>
+            {t('events.selectNewHorse')}
+          </span>
           {alternatives.length === 0 ? (
             <p className={classes.competitionHint}>
-              No other eligible horse for this competition
+              {t('events.noOtherHorseForComp')}
             </p>
           ) : (
             <div className={classes.horseOptions}>
@@ -395,10 +867,11 @@ function EntryManageActions({ eventId, entry, competition, onUpdated }) {
                     onClick={() => setSelectedHorseId(horseId)}
                     disabled={busy}
                   >
-                    {h.horse_name}
+                    {capitalizeName(h.horse_name)}
                     {h.horse_level_display || h.horse_level
-                      ? ` (${toEnglishLevelLabel(
-                          h.horse_level_display || h.horse_level
+                      ? ` (${getHorseLevelLabel(
+                          h.horse_level_display || h.horse_level,
+                          t
                         )})`
                       : ''}
                   </button>
@@ -413,7 +886,7 @@ function EntryManageActions({ eventId, entry, competition, onUpdated }) {
               onClick={handleChangeHorse}
               disabled={busy || !selectedHorseId}
             >
-              {busy ? 'Saving…' : 'Save'}
+              {busy ? t('common.saving') : t('common.save')}
             </button>
             <button
               type="button"
@@ -425,7 +898,7 @@ function EntryManageActions({ eventId, entry, competition, onUpdated }) {
               }}
               disabled={busy}
             >
-              Cancel
+              {t('common.cancel')}
             </button>
           </div>
         </div>
@@ -480,6 +953,161 @@ function groupEntriesByCompetition(entries, competitions) {
   return groups;
 }
 
+function billingGroupsHaveAmounts(groups) {
+  return groups.some((group) =>
+    group.lines.some((line) => {
+      if (line.due == null || line.due === '') return false;
+      const n = Number(line.due);
+      if (Number.isFinite(n)) return n > 0;
+      return true;
+    })
+  );
+}
+
+function sumReceiptAmount(groups) {
+  let total = 0;
+  let any = false;
+  for (const group of groups) {
+    for (const line of group.lines) {
+      const n = Number(line.due);
+      if (Number.isFinite(n)) {
+        total += n;
+        any = true;
+      }
+    }
+  }
+  return any ? total : null;
+}
+
+function receiptGroupsFromEntries(event, t) {
+  const competitions = event.competitions ?? [];
+  const groups = groupEntriesByCompetition(event.entries ?? [], competitions);
+
+  return groups
+    .map((group, groupIndex) => {
+      const competition = group.competition;
+      const name =
+        competition?.competition_name ||
+        group.orphanName ||
+        group.entries[0]?.competition_name ||
+        t('events.competition');
+      const lines = (group.entries ?? [])
+        .filter(
+          (entry) =>
+            isEntryPaid(entry) ||
+            firstAmount(
+              entry.paid_amount,
+              entry.amount_paid,
+              entry.already_paid,
+              entry.entry_fee
+            ) != null
+        )
+        .map((entry) => ({
+          horseName: entry.horse_name || t('common.horse'),
+          due: firstAmount(
+            entry.paid_amount,
+            entry.amount_paid,
+            entry.already_paid,
+            entry.due,
+            entry.entry_fee
+          ),
+          reason: entry.reason || entry.billing_reason || '',
+        }));
+
+      return {
+        key: `receipt-${competition?.competition_id ?? name}-${groupIndex}`,
+        competitionName: name,
+        lines,
+      };
+    })
+    .filter((group) => group.lines.length > 0);
+}
+
+function buildEventReceipt(event, t) {
+  const competitions = event.competitions ?? [];
+  const billing = Array.isArray(event.billing) ? event.billing : [];
+  const fromBilling = groupBillingByCompetition(
+    billing,
+    competitions,
+    t,
+    getCompetitionPaidAmount
+  );
+  const groups = billingGroupsHaveAmounts(fromBilling)
+    ? fromBilling
+    : receiptGroupsFromEntries(event, t);
+  const currency =
+    event.paid_currency ||
+    event.charge_currency ||
+    event.unpaid_currency ||
+    'GEL';
+  const total =
+    firstAmount(event.paid_total, event.amount_paid, event.total_paid) ??
+    sumReceiptAmount(groups);
+
+  return { groups, currency, total };
+}
+
+function EventReceipt({ event }) {
+  const { t, i18n } = useTranslation('riderProfile');
+  const { groups, currency, total } = buildEventReceipt(event, t);
+
+  if (!groups.length && (total == null || total === '')) return null;
+
+  return (
+    <div className={classes.paySection}>
+      <div className={classes.payAllHeader}>
+        <h4 className={classes.payAllTitle}>{t('events.receiptTitle')}</h4>
+        <p className={classes.payAllHint}>{t('events.receiptHint')}</p>
+      </div>
+
+      {groups.length > 0 && (
+        <div className={classes.eventBillingList}>
+          {groups.map((group) => (
+            <div key={group.key} className={classes.eventBillingCompetition}>
+              <div className={classes.eventBillingCompetitionTitle}>
+                {translateBillingReason(
+                  group.competitionName,
+                  t,
+                  i18n.language
+                )}
+              </div>
+              <div className={classes.eventBillingHorseLines}>
+                {group.lines.map((line, index) => (
+                  <div
+                    key={`${group.key}-${line.horseName}-${index}`}
+                    className={classes.eventBillingHorseLine}
+                  >
+                    <span>
+                      {capitalizeName(line.horseName)}
+                      {line.reason
+                        ? ` · ${translateBillingReason(
+                            line.reason,
+                            t,
+                            i18n.language
+                          )}`
+                        : ''}
+                    </span>
+                    <span className={classes.eventBillingAmount}>
+                      {formatMoney(line.due, currency) || '—'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className={classes.payAllTotals}>
+        <div className={classes.payAllTotalRow}>
+          <span>{t('events.paidTotal')}</span>
+          <strong>{formatMoney(total, currency) || '—'}</strong>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function EventEntries({
   entries,
   showResults = false,
@@ -488,11 +1116,17 @@ function EventEntries({
   competitions,
   onUpdated,
   horseImageById,
+  canPayEntry = false,
+  onPayEntry,
+  payingEntryId = null,
+  unpaidCurrency = 'GEL',
+  billing = null,
 }) {
+  const { t, i18n } = useTranslation('riderProfile');
   if (!entries?.length) return null;
 
   const comps = competitions ?? [];
-  const dayLabelsByDate = buildCompetitionDayLabels(comps);
+  const dayLabelsByDate = buildCompetitionDayLabels(comps, t);
   const groups = groupEntriesByCompetition(entries, comps);
 
   return (
@@ -503,8 +1137,8 @@ function EventEntries({
           competition?.competition_name ||
           group.orphanName ||
           group.entries[0]?.competition_name ||
-          'Competition';
-        const details = resolveEntryDetails(group.entries[0], competition);
+          t('events.competition');
+        const details = resolveEntryDetails(group.entries[0], competition, t);
         const dateKey = normalizeCompetitionDate(
           competition?.competition_date ||
             competition?.date ||
@@ -512,17 +1146,23 @@ function EventEntries({
         );
         const dayLabel = dateKey ? dayLabelsByDate[dateKey] : null;
         const heightLabel =
-          details.height || formatHeight(competition?.height);
-        const feeLabel =
-          details.feeLabel ||
-          formatMoney(
-            competition?.entry_fee,
-            competition?.entry_fee_currency || 'GEL'
-          );
+          details.height ||
+          resolveCompetitionHeight(null, competition) ||
+          group.entries
+            .map((e) => resolveCompetitionHeight(e, competition))
+            .find(Boolean) ||
+          null;
+        const feeLabel = resolveEntryFeeLabel(
+          group.entries.find((e) => isEntryUnpaid(e)) || group.entries[0],
+          competition,
+          unpaidCurrency,
+          billing
+        );
         const tourLabel =
           details.tour ||
-          toEnglishLevelLabel(
-            competition?.tour_level_display || competition?.tour_level
+          getHorseLevelLabel(
+            competition?.tour_level_display || competition?.tour_level,
+            t
           );
 
         return (
@@ -552,7 +1192,10 @@ function EventEntries({
             {(details.date || details.time || competition?.competition_date) && (
               <p className={classes.competitionMeta}>
                 {[
-                  details.date || competition?.competition_date,
+                  formatDisplayDate(
+                    details.date || competition?.competition_date,
+                    i18n.language
+                  ),
                   details.time || formatStartTime(competition?.start_time),
                 ]
                   .filter(Boolean)
@@ -564,12 +1207,23 @@ function EventEntries({
               {group.entries.map((entry, index) => {
                 const unpaid = isEntryUnpaid(entry);
                 const paid = isEntryPaid(entry);
-                const result = showResults ? formatEntryResult(entry) : null;
+                const result = showResults
+                  ? formatEntryResult(entry, competition, t)
+                  : null;
                 const horseImage = resolveEntryHorseImage(
                   entry,
                   competition,
                   horseImageById
                 );
+                const entryFeeLabel = resolveEntryFeeLabel(
+                  entry,
+                  competition,
+                  unpaidCurrency,
+                  billing
+                );
+                const isPayingThis =
+                  payingEntryId != null &&
+                  String(payingEntryId) === String(entry.entry_id);
 
                 return (
                   <div
@@ -596,14 +1250,23 @@ function EventEntries({
                       )}
                       <div className={classes.horsePickText}>
                         <span className={classes.horsePickName}>
-                          {entry.horse_name || '—'}
+                          {capitalizeName(entry.horse_name) || '—'}
                         </span>
                         <div className={classes.entryBadges}>
                           {unpaid && (
-                            <span className={classes.unpaidBadge}>Unpaid</span>
+                            <span className={classes.unpaidBadge}>
+                              {t('events.unpaid')}
+                            </span>
                           )}
                           {paid && (
-                            <span className={classes.paidBadge}>Paid</span>
+                            <span className={classes.paidBadge}>
+                              {t('events.paid')}
+                            </span>
+                          )}
+                          {unpaid && entryFeeLabel && (
+                            <span className={classes.entryFeeBadge}>
+                              {entryFeeLabel}
+                            </span>
                           )}
                           {result && (
                             <span className={classes.entryResult}>{result}</span>
@@ -618,6 +1281,10 @@ function EventEntries({
                         entry={entry}
                         competition={competition}
                         onUpdated={onUpdated}
+                        canPay={canPayEntry}
+                        onPay={onPayEntry}
+                        paying={isPayingThis}
+                        feeLabel={entryFeeLabel}
                       />
                     )}
                   </div>
@@ -660,7 +1327,7 @@ function normalizeCompetitionDate(value) {
 }
 
 /** Map YYYY-MM-DD → "Day I" / "Day II" … (only useful when 2+ days). */
-function buildCompetitionDayLabels(competitions) {
+function buildCompetitionDayLabels(competitions, t) {
   const dates = [
     ...new Set(
       (competitions ?? [])
@@ -675,7 +1342,7 @@ function buildCompetitionDayLabels(competitions) {
 
   const map = {};
   dates.forEach((date, index) => {
-    map[date] = `Day ${toDayRoman(index + 1)}`;
+    map[date] = t('events.day', { n: toDayRoman(index + 1) });
   });
   return map;
 }
@@ -687,6 +1354,7 @@ function CompetitionRegistrationRow({
   dayLabel,
   horseImageById,
 }) {
+  const { t, i18n } = useTranslation('riderProfile');
   const horses = competition.eligible_horses ?? [];
   const enteredHorses = horses.filter((h) => h.already_entered);
   const slotsRemaining = getSlotsRemaining(competition);
@@ -697,7 +1365,7 @@ function CompetitionRegistrationRow({
     competition.entry_fee,
     competition.entry_fee_currency || 'GEL'
   );
-  const heightLabel = formatHeight(competition.height);
+  const heightLabel = resolveCompetitionHeight(null, competition);
   const maxPerRider =
     competition.max_horses_per_rider ??
     competition.max_horses_per_competition ??
@@ -706,7 +1374,9 @@ function CompetitionRegistrationRow({
   const noHorsesAtAll = horses.length === 0;
   const registrationOpen = isCompetitionRegistrationOpen(competition);
   const closesLabel = formatRegistrationClosesAt(
-    competition.registration_closes_at
+    competition.registration_closes_at,
+    t,
+    i18n.language
   );
   const selectableHorses = horses.filter(
     (h) => h.can_enter && !h.already_entered
@@ -736,8 +1406,9 @@ function CompetitionRegistrationRow({
           {competition.competition_name}
         </span>
         <span className={classes.tourLevel}>
-          {toEnglishLevelLabel(
-            competition.tour_level_display || competition.tour_level
+          {getHorseLevelLabel(
+            competition.tour_level_display || competition.tour_level,
+            t
           )}
         </span>
         {dayLabel && (
@@ -752,7 +1423,7 @@ function CompetitionRegistrationRow({
       </div>
       {competition.competition_date && (
         <p className={classes.competitionMeta}>
-          {competition.competition_date}
+          {formatDisplayDate(competition.competition_date, i18n.language)}
           {competition.start_time
             ? ` · ${formatStartTime(competition.start_time)}`
             : ''}
@@ -768,22 +1439,24 @@ function CompetitionRegistrationRow({
           }
         >
           {registrationOpen
-            ? `Registration open until ${closesLabel}`
-            : `Registration closed · ${closesLabel}`}
+            ? t('events.regOpenUntil', { date: closesLabel })
+            : t('events.regClosedUntil', { date: closesLabel })}
         </p>
       )}
       {!closesLabel && !registrationOpen && (
         <p className={classes.competitionDeadlineClosed}>
-          Registration closed for this competition
+          {t('events.regClosedComp')}
         </p>
       )}
 
       <p className={classes.slotsHint}>
-        Horses: {competition.rider_entries_count ?? enteredHorses.length}/
-        {maxPerRider}
+        {t('events.horsesSlots', {
+          used: competition.rider_entries_count ?? enteredHorses.length,
+          max: maxPerRider,
+        })}
         {slotsRemaining > 0
-          ? ` · ${slotsRemaining} slot(s) left`
-          : ' · no slots left'}
+          ? ` · ${t('events.slotsLeft', { count: slotsRemaining })}`
+          : ` · ${t('events.noSlotsLeft')}`}
       </p>
 
       {enteredHorses.length > 0 && (
@@ -800,8 +1473,12 @@ function CompetitionRegistrationRow({
                   </div>
                 )}
                 <div className={classes.horsePickText}>
-                  <span className={classes.horsePickName}>{h.horse_name}</span>
-                  <span className={classes.horsePickStatus}>Registered</span>
+                  <span className={classes.horsePickName}>
+                    {capitalizeName(h.horse_name)}
+                  </span>
+                  <span className={classes.horsePickStatus}>
+                    {t('events.registered')}
+                  </span>
                 </div>
               </div>
             );
@@ -811,27 +1488,26 @@ function CompetitionRegistrationRow({
 
       {!registrationOpen && (
         <p className={classes.competitionHint}>
-          New entries and changes are locked for this competition. Payment stays
-          available in Entry dues.
+          {t('events.lockedHint')}
         </p>
       )}
 
       {registrationOpen && noHorsesAtAll && (
         <p className={classes.competitionHint}>
-          Add a horse to your profile first
+          {t('events.addHorseFirst')}
         </p>
       )}
 
       {registrationOpen && !noHorsesAtAll && slotsRemaining <= 0 && (
         <p className={classes.competitionHint}>
-          Maximum {maxPerRider} horses already registered for this competition
+          {t('events.maxHorses', { count: maxPerRider })}
         </p>
       )}
 
       {registrationOpen && !noHorsesAtAll && slotsRemaining > 0 && (
         <div className={classes.horsePick}>
           <span className={classes.horsePickLabel}>
-            Select horses (up to {slotsRemaining})
+            {t('events.selectHorses', { count: slotsRemaining })}
           </span>
           <div className={classes.horsePickGrid}>
             {selectableHorses.map((h) => {
@@ -852,8 +1528,8 @@ function CompetitionRegistrationRow({
                   title={
                     blockedReason ||
                     (disabledByLimit
-                      ? `Max ${slotsRemaining} horse(s) for this competition`
-                      : h.horse_name)
+                      ? t('events.maxHorsesTitle', { count: slotsRemaining })
+                      : capitalizeName(h.horse_name))
                   }
                   onClick={() =>
                     onToggleHorse(competition.competition_id, horseId)
@@ -869,7 +1545,9 @@ function CompetitionRegistrationRow({
                       {(h.horse_name || '?').slice(0, 1).toUpperCase()}
                     </div>
                   )}
-                  <span className={classes.horsePickName}>{h.horse_name}</span>
+                  <span className={classes.horsePickName}>
+                    {capitalizeName(h.horse_name)}
+                  </span>
                 </button>
               );
             })}
@@ -878,12 +1556,15 @@ function CompetitionRegistrationRow({
             <p className={classes.competitionHint}>
               {horses.some((h) => h.blocked_reason)
                 ? horses.find((h) => h.blocked_reason)?.blocked_reason
-                : 'No eligible horse found for this competition'}
+                : t('events.noEligible')}
             </p>
           )}
           {selectedCount > 0 && (
             <p className={classes.selectionHint}>
-              Selected {selectedCount}/{slotsRemaining}
+              {t('events.selectedCount', {
+                selected: selectedCount,
+                max: slotsRemaining,
+              })}
             </p>
           )}
         </div>
@@ -900,26 +1581,59 @@ function UpcomingEventCard({
   registerBlockedReason,
   horseImageById,
 }) {
+  const { t, i18n } = useTranslation('riderProfile');
   const [expanded, setExpanded] = useState(false);
   const [selections, setSelections] = useState({});
   const [registering, setRegistering] = useState(false);
   const [registerError, setRegisterError] = useState('');
   const [registerSuccess, setRegisterSuccess] = useState('');
   const [forbiddenBlockReason, setForbiddenBlockReason] = useState('');
+  const [paying, setPaying] = useState(false);
+  const [payingEntryId, setPayingEntryId] = useState(null);
+  const [payError, setPayError] = useState('');
 
   const hasCover = Boolean(event.cover_image);
   const competitions = event.competitions ?? [];
-  const dayLabelsByDate = buildCompetitionDayLabels(competitions);
+  const dayLabelsByDate = buildCompetitionDayLabels(competitions, t);
   const hasUnpaid = Boolean(event.has_unpaid_entries);
-  const unpaidTotal = formatMoney(
-    event.unpaid_total,
-    event.unpaid_currency || 'GEL'
-  );
+  const unpaidCurrency = event.unpaid_currency || 'GEL';
+  const unpaidTotal = formatMoney(event.unpaid_total, unpaidCurrency);
+  const chargeCurrency = event.charge_currency || unpaidCurrency;
+  const chargeDue = formatMoney(event.charge_due, chargeCurrency);
+  const showChargePreview =
+    event.charge_due != null &&
+    event.charge_due !== '' &&
+    String(event.charge_due) !== String(event.unpaid_total);
+  const billing = Array.isArray(event.billing) ? event.billing : [];
+  const billingGroups = groupBillingByCompetition(billing, competitions, t);
+  const pendingUrl = getEventPendingRedirect(event);
   const gate = resolveRegisterGate(
     event,
     canRegisterForEvents,
-    registerBlockedReason
+    registerBlockedReason,
+    t
   );
+  const paymentsOpen = gate.anyCompetitionOpen;
+  const payBlocked = event.can_pay === false && !pendingUrl;
+  const canPay = !payBlocked && paymentsOpen;
+  const canPayEntry = canPay && !pendingUrl;
+  const payBlockedReason = rewriteAgeBlockedReason(
+    event.pay_blocked_reason || '',
+    t
+  );
+  const unpaidEntryCount = (event.entries ?? []).filter((e) =>
+    isEntryUnpaid(e)
+  ).length;
+  const unpaidOpenIds = (event.entries ?? [])
+    .filter(
+      (entry) =>
+        isEntryUnpaid(entry) &&
+        isCompetitionRegistrationOpen(
+          findCompetitionForEntry(competitions, entry)
+        )
+    )
+    .map((entry) => entry.entry_id)
+    .filter((id) => id != null && id !== '');
   const registerBlocked = gate.blocked || Boolean(forbiddenBlockReason);
   const blockedReason = forbiddenBlockReason || gate.reason;
 
@@ -986,15 +1700,17 @@ function UpcomingEventCard({
       const result = await registerForEvent(event.id, entries);
       const due = formatMoney(result?.total_due, result?.currency || 'GEL');
       setRegisterSuccess(
-        result?.message ||
-          (result?.registered
-            ? `Registered for ${result.registered} competition(s)${due ? ` · due ${due}` : ''}. You appear on the start list; pay entry dues when ready.`
-            : 'Registration created. You appear on the start list.')
+        result?.registered
+          ? t('events.registeredFor', {
+              count: result.registered,
+              due: due ? t('events.dueSuffix', { amount: due }) : '',
+            })
+          : t('events.registrationCreated')
       );
       setSelections({});
       await onRegistered();
     } catch (err) {
-      const message = formatApiError(err, 'Registration failed');
+      const message = formatApiError(err, t, 'events.registrationFailed');
       setRegisterError(message);
       if (err instanceof ApiRequestError && err.status === 403) {
         setForbiddenBlockReason(message);
@@ -1002,6 +1718,36 @@ function UpcomingEventCard({
       }
     } finally {
       setRegistering(false);
+    }
+  };
+
+  const redirectToBank = (url) => {
+    window.location.href = url;
+  };
+
+  const handlePay = async (entryIds) => {
+    setPayError('');
+    const ids = Array.isArray(entryIds)
+      ? entryIds.filter((id) => id != null && id !== '')
+      : [];
+    try {
+      setPaying(true);
+      setPayingEntryId(ids.length === 1 ? ids[0] : 'all');
+      const response = await payForEvent(
+        event.id,
+        ids.length === 1 ? { entry_ids: [Number(ids[0])] } : {}
+      );
+      const redirectUrl = getPaymentRedirectUrl(response);
+      if (!redirectUrl) {
+        setPayError(t('events.noRedirect'));
+        return;
+      }
+      redirectToBank(redirectUrl);
+    } catch (err) {
+      setPayError(formatApiError(err, t, 'events.payStartFailed'));
+    } finally {
+      setPaying(false);
+      setPayingEntryId(null);
     }
   };
 
@@ -1018,27 +1764,42 @@ function UpcomingEventCard({
               {event.title}
             </Link>
           </h3>
-          {event.date && <p className={classes.eventMeta}>{event.date}</p>}
+          {event.date && (
+            <p className={classes.eventMeta}>
+              {formatDisplayDate(event.date, i18n.language)}
+            </p>
+          )}
           {event.location && <p className={classes.eventMeta}>{event.location}</p>}
           {event.description && (
             <p className={classes.eventDescription}>{event.description}</p>
           )}
 
           {event.is_registered && (
-            <span className={classes.registeredBadge}>Registered</span>
+            <span className={classes.registeredBadge}>
+              {t('events.registered')}
+            </span>
           )}
 
-          {hasUnpaid && unpaidTotal && (
+          {hasUnpaid && (unpaidTotal || chargeDue) && (
             <div className={classes.unpaidSummary}>
-              <span className={classes.unpaidSummaryLabel}>Unpaid total</span>
-              <strong className={classes.unpaidSummaryAmount}>{unpaidTotal}</strong>
+              <span className={classes.unpaidSummaryLabel}>
+                {t('events.unpaidTotal')}
+              </span>
+              <strong className={classes.unpaidSummaryAmount}>
+                {unpaidTotal || chargeDue}
+              </strong>
+              {showChargePreview && chargeDue && (
+                <span className={classes.chargePreview}>
+                  {t('events.chargePreview', { amount: chargeDue })}
+                  {event.fx ? ` · ${event.fx}` : ''}
+                </span>
+              )}
             </div>
           )}
 
           {!registerBlocked && gate.anyCompetitionOpen && (
             <p className={classes.registrationDeadline}>
-              Each competition closes at 18:00 Tbilisi time the day before it
-              runs.
+              {t('events.deadlineHint')}
             </p>
           )}
         </div>
@@ -1057,7 +1818,126 @@ function UpcomingEventCard({
             competitions={competitions}
             onUpdated={onRegistered}
             horseImageById={horseImageById}
+            canPayEntry={canPayEntry}
+            onPayEntry={(entryId) => void handlePay([entryId])}
+            payingEntryId={payingEntryId}
+            unpaidCurrency={unpaidCurrency}
+            billing={billing}
           />
+        )}
+
+        {hasUnpaid && (
+          <div className={classes.paySection}>
+            <div className={classes.payAllHeader}>
+              <h4 className={classes.payAllTitle}>{t('events.payAllTitle')}</h4>
+              <p className={classes.payAllHint}>
+                {t('events.payAllHint', {
+                  count:
+                    unpaidEntryCount > 0
+                      ? t('events.payAllHintCount', { count: unpaidEntryCount })
+                      : '',
+                })}
+              </p>
+            </div>
+
+            {billingGroups.length > 0 && (
+              <div className={classes.eventBillingList}>
+                {billingGroups.map((group) => (
+                  <div key={group.key} className={classes.eventBillingCompetition}>
+                    <div className={classes.eventBillingCompetitionTitle}>
+                      {translateBillingReason(
+                        group.competitionName,
+                        t,
+                        i18n.language
+                      )}
+                    </div>
+                    <div className={classes.eventBillingHorseLines}>
+                      {group.lines.map((line, index) => (
+                        <div
+                          key={`${group.key}-${line.horseName}-${index}`}
+                          className={classes.eventBillingHorseLine}
+                        >
+                          <span>
+                            {capitalizeName(line.horseName)}
+                            {line.reason
+                              ? ` · ${translateBillingReason(
+                                  line.reason,
+                                  t,
+                                  i18n.language
+                                )}`
+                              : ''}
+                          </span>
+                          <span className={classes.eventBillingAmount}>
+                            {formatMoney(line.due, unpaidCurrency) || '—'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className={classes.payAllTotals}>
+              {unpaidTotal && (
+                <div className={classes.payAllTotalRow}>
+                  <span>{t('events.unpaidTotal')}</span>
+                  <strong>{unpaidTotal}</strong>
+                </div>
+              )}
+              {showChargePreview && chargeDue && (
+                <div className={classes.payAllTotalRow}>
+                  <span>
+                    {t('events.amountToCharge')}
+                    {event.fx ? ` (${event.fx})` : ''}
+                  </span>
+                  <strong>{chargeDue}</strong>
+                </div>
+              )}
+            </div>
+
+            {payBlockedReason && !canPay && paymentsOpen && !pendingUrl && (
+              <p className={classes.competitionHint}>{payBlockedReason}</p>
+            )}
+
+            {!paymentsOpen && (
+              <p className={classes.competitionHint}>{t('events.payClosed')}</p>
+            )}
+
+            {payError && <p className={classes.error}>{payError}</p>}
+
+            {paymentsOpen &&
+              unpaidOpenIds.length > 0 &&
+              (pendingUrl || (canPay && !pendingUrl)) && (
+              <div className={classes.eventPayRow}>
+                {pendingUrl ? (
+                  <button
+                    type="button"
+                    className={classes.payBtn}
+                    onClick={() => redirectToBank(pendingUrl)}
+                    disabled={paying}
+                  >
+                    {t('events.continuePayment')}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className={classes.payBtn}
+                    onClick={() => void handlePay([])}
+                    disabled={paying}
+                  >
+                    {paying && payingEntryId === 'all'
+                      ? t('events.redirecting')
+                      : chargeDue || unpaidTotal
+                        ? t('events.payAllAmount', {
+                            amount: chargeDue || unpaidTotal,
+                          })
+                        : t('events.payAll')}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         )}
 
         {registerBlocked && (
@@ -1071,7 +1951,7 @@ function UpcomingEventCard({
               className={classes.toggleRegistrationBtn}
               onClick={() => setExpanded((v) => !v)}
             >
-              {expanded ? 'Hide registration' : 'Register for competitions'}
+              {expanded ? t('events.hideRegistration') : t('events.registerFor')}
             </button>
 
             {expanded && (
@@ -1103,7 +1983,7 @@ function UpcomingEventCard({
                   onClick={handleRegister}
                   disabled={registering || !canSubmitRegistration}
                 >
-                  {registering ? 'Registering…' : 'Register'}
+                  {registering ? t('events.registering') : t('events.register')}
                 </button>
               </div>
             )}
@@ -1115,6 +1995,7 @@ function UpcomingEventCard({
 }
 
 function ParticipatedEventCard({ event, horseImageById }) {
+  const { i18n } = useTranslation('riderProfile');
   const hasCover = Boolean(event.cover_image);
 
   return (
@@ -1128,7 +2009,11 @@ function ParticipatedEventCard({ event, horseImageById }) {
               {event.title}
             </Link>
           </h3>
-          {event.date && <p className={classes.eventMeta}>{event.date}</p>}
+          {event.date && (
+            <p className={classes.eventMeta}>
+              {formatDisplayDate(event.date, i18n.language)}
+            </p>
+          )}
           {event.location && <p className={classes.eventMeta}>{event.location}</p>}
         </div>
         {hasCover ? (
@@ -1143,6 +2028,7 @@ function ParticipatedEventCard({ event, horseImageById }) {
           competitions={event.competitions ?? []}
           horseImageById={horseImageById}
         />
+        <EventReceipt event={event} />
       </div>
     </article>
   );
@@ -1212,6 +2098,7 @@ function useMyEventsData() {
 }
 
 function MyEventsProviderContent({ children }) {
+  const { t } = useTranslation('riderProfile');
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnHandled = useRef(false);
@@ -1252,13 +2139,41 @@ function MyEventsProviderContent({ children }) {
     router.replace('/rider-profile/', { scroll: false });
   }, [router]);
 
+  const pollAfterSuccessReturn = useCallback(
+    async (eventId) => {
+      setPaymentMessage('processing');
+      setPaymentError('');
+
+      for (let attempt = 0; attempt < 12; attempt += 1) {
+        try {
+          const latest = await loadEvents();
+          const match = (latest?.upcoming ?? []).find(
+            (ev) => String(ev.id) === String(eventId)
+          );
+          if (!match || !match.has_unpaid_entries) {
+            setPaymentMessage('paySuccess');
+            clearPaymentQuery();
+            return;
+          }
+        } catch {
+          /* keep polling */
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+      }
+
+      setPaymentMessage('stillProcessing');
+      clearPaymentQuery();
+    },
+    [clearPaymentQuery, loadEvents]
+  );
+
   useEffect(() => {
     const run = async () => {
       try {
         await loadEvents();
       } catch (e) {
         if (e instanceof ApiRequestError && e.status !== 401) {
-          setLoadError(e.message || 'Failed to load events');
+          setLoadError(e.message || t('events.loadFailed'));
         }
       } finally {
         setLoading(false);
@@ -1278,24 +2193,18 @@ function MyEventsProviderContent({ children }) {
     returnHandled.current = true;
     setHighlightEventId(eventId);
 
-    const refresh = async () => {
-      try {
-        await loadEvents();
-      } catch {
-        /* ignore */
-      }
-    };
-
     if (payment === 'success') {
-      setPaymentMessage('Payment successful. Entry status updated.');
-      refresh().finally(() => {
-        clearPaymentQuery();
-      });
+      void pollAfterSuccessReturn(eventId);
     } else if (payment === 'fail') {
-      setPaymentError('Payment failed. Please try again.');
+      setPaymentError(t('events.payFailed'));
       clearPaymentQuery();
     }
-  }, [clearPaymentQuery, loading, loadEvents, searchParams]);
+  }, [
+    clearPaymentQuery,
+    loading,
+    pollAfterSuccessReturn,
+    searchParams,
+  ]);
 
   const value = {
     upcoming,
@@ -1328,6 +2237,7 @@ export function MyEventsProvider({ children }) {
 }
 
 export function UpcomingEventsSection() {
+  const { t } = useTranslation('riderProfile');
   const {
     upcoming,
     counts,
@@ -1345,7 +2255,7 @@ export function UpcomingEventsSection() {
   if (loading) {
     return (
       <section className={classes.eventsSection}>
-        <div className={classes.loading}>Loading events...</div>
+        <div className={classes.loading}>{t('events.loading')}</div>
       </section>
     );
   }
@@ -1360,13 +2270,21 @@ export function UpcomingEventsSection() {
 
   return (
     <section className={classes.eventsSection}>
-      {paymentMessage && <p className={classes.success}>{paymentMessage}</p>}
+      {paymentMessage && (
+        <p className={classes.success}>
+          {paymentMessage === 'processing' ||
+          paymentMessage === 'paySuccess' ||
+          paymentMessage === 'stillProcessing'
+            ? t(`events.${paymentMessage}`)
+            : paymentMessage}
+        </p>
+      )}
       {paymentError && <p className={classes.error}>{paymentError}</p>}
 
       <EventSection
-        title="Upcoming events"
+        title={t('events.upcoming')}
         events={upcoming}
-        emptyMessage="No upcoming events"
+        emptyMessage={t('events.emptyUpcoming')}
         variant="upcoming"
         count={counts?.upcoming ?? upcoming.length}
         onRegistered={loadEvents}
@@ -1382,6 +2300,7 @@ export function UpcomingEventsSection() {
 const HISTORY_PAGE_SIZE = 5;
 
 export function ParticipationHistorySection() {
+  const { t } = useTranslation('riderProfile');
   const { participated, counts, horseImageById, loading, loadError } =
     useMyEventsData();
   const [open, setOpen] = useState(false);
@@ -1415,12 +2334,12 @@ export function ParticipationHistorySection() {
           onClick={handleToggle}
           aria-expanded={open}
         >
-          <span>Participation history</span>
+          <span>{t('events.history')}</span>
           {count != null && (
             <span className={classes.sectionCount}>{count}</span>
           )}
           <span className={classes.historyToggleHint}>
-            {open ? 'Hide' : 'Show'}
+            {open ? t('events.hide') : t('events.show')}
           </span>
         </button>
       </div>
@@ -1428,9 +2347,9 @@ export function ParticipationHistorySection() {
       {open && (
         <>
           <EventSection
-            title="Participation history"
+            title={t('events.history')}
             events={visibleEvents}
-            emptyMessage="No past participations yet"
+            emptyMessage={t('events.emptyHistory')}
             variant="participated"
             count={count}
             horseImageById={horseImageById}
@@ -1445,7 +2364,7 @@ export function ParticipationHistorySection() {
                   setVisibleCount((prev) => prev + HISTORY_PAGE_SIZE)
                 }
               >
-                Show more
+                {t('events.showMore')}
               </button>
             </div>
           )}

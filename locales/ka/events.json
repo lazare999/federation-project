@@ -17,10 +17,14 @@
     "noResultsMessage": "შედეგები გამოქვეყნდება შეჯიბრის დასრულების შემდეგ.",
     "start": "დასაწყისი",
     "rank": "ადგილი",
+    "place": "ადგილი",
     "rider": "მხედარი",
     "horse": "ცხენი",
     "faults": "შეცდომები",
-    "time": "დრო"
+    "time": "დრო",
+    "jumpoff": "Jump-off",
+    "points": "ქულა",
+    "secondsShort": "წმ"
   },
   "photos": {
     "noPhotosMessage": "ამ ღონისძიებისთვის ფოტოები არ არის ხელმისაწვდომი."

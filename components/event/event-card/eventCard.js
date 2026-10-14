@@ -3,6 +3,8 @@
 import classes from '@/styles/events/event-card/eventCard.module.css';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+import { formatDisplayDate } from '@/lib/utils/formatDisplayDate';
 
 export default function EventCard({
   event,
@@ -11,6 +13,7 @@ export default function EventCard({
   priority = false,
 }) {
   const router = useRouter();
+  const { i18n } = useTranslation();
 
   const handleCardClick = () => {
     if (onClick) {
@@ -43,7 +46,9 @@ export default function EventCard({
 
       <div className={classes.infoCard}>
         <h2 className={classes.title}>{event.title}</h2>
-        <p className={classes.date}>{event.date}</p>
+        <p className={classes.date}>
+          {formatDisplayDate(event.date, i18n.language)}
+        </p>
       </div>
     </div>
   );

@@ -1,13 +1,14 @@
 'use client';
 
 import classes from '@/styles/events/start-list/startList.module.css';
+import { capitalizeName } from '@/lib/utils/capitalizeName';
 
-function isEntryUnpaid(entry) {
-  if (entry?.payment_status === 'unpaid') return true;
-  if (entry?.payment_status === 'paid') return false;
-  if (entry?.is_paid === false) return true;
-  if (entry?.is_paid === true) return false;
-  return false;
+function isEntryPaid(entry) {
+  const status = String(entry?.payment_status || '').toLowerCase();
+  if (status === 'paid' || status === 'completed' || status === 'success') {
+    return true;
+  }
+  return entry?.is_paid === true || entry?.paid === true;
 }
 
 export default function StartList({ competition }) {
@@ -21,7 +22,17 @@ export default function StartList({ competition }) {
     );
   }
 
-  const sortedEntries = [...entries].sort(
+  const paidEntries = entries.filter(isEntryPaid);
+
+  if (!paidEntries.length) {
+    return (
+      <p className={classes.noEntriesMessage}>
+        No riders registered for this competition.
+      </p>
+    );
+  }
+
+  const sortedEntries = [...paidEntries].sort(
     (a, b) => (a.order ?? 0) - (b.order ?? 0)
   );
 
@@ -37,20 +48,18 @@ export default function StartList({ competition }) {
         </div>
 
         {sortedEntries.map((entry, index) => {
-          const unpaid = isEntryUnpaid(entry);
-          const riderName =
-            entry.rider?.name || entry.rider_name || '—';
-          const horseName =
-            entry.horse?.name || entry.horse_name || '—';
+          const riderName = capitalizeName(
+            entry.rider?.name || entry.rider_name || '—'
+          );
+          const horseName = capitalizeName(
+            entry.horse?.name || entry.horse_name || '—'
+          );
 
           return (
             <div key={entry.id ?? `${riderName}-${horseName}-${index}`} className={classes.row}>
               <div>{index + 1}</div>
               <div className={classes.cellWithBadge}>
                 <span>{riderName}</span>
-                {unpaid && (
-                  <span className={classes.unpaidBadge}>Unpaid</span>
-                )}
               </div>
               <div>{horseName}</div>
             </div>

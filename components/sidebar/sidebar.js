@@ -81,6 +81,10 @@ export default function Sidebar({ isMenuOpen, setIsMenuOpen }) {
             {t('news')}
           </Link>
 
+          <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+            {t('athleteProfile')}
+          </Link>
+
           <Link href="/contact" onClick={() => setIsMenuOpen(false)}>
             {t('contact')}
           </Link>

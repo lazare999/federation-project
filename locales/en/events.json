@@ -17,10 +17,14 @@
     "noResultsMessage": "Results will be published after the competition.",
     "start": "START",
     "rank": "Rank",
+    "place": "Place",
     "rider": "Rider",
     "horse": "Horse",
     "faults": "Faults",
-    "time": "Time"
+    "time": "Time",
+    "jumpoff": "Jump-off",
+    "points": "Points",
+    "secondsShort": "s"
   },
   "photos": {
     "noPhotosMessage": "No photos available for this event."
