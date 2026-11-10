@@ -205,7 +205,8 @@ function EntryDuesBlockContent() {
 
     returnHandled.current = true;
 
-    if (payment === 'success') {
+    // TBC uses a single return URL (payment=return); keep success/fail for older links.
+    if (payment === 'return' || payment === 'success') {
       pollAfterSuccessReturn();
     } else if (payment === 'fail') {
       setReturnMessage('');

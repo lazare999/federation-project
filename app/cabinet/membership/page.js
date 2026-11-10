@@ -20,7 +20,7 @@ function MembershipReturnRedirect() {
   );
 }
 
-/** BOG return URLs from backend default to /cabinet/membership?payment=… */
+/** TBC return URLs: /cabinet/membership?payment=return (also success|fail) */
 export default function CabinetMembershipPage() {
   return (
     <Suspense

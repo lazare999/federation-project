@@ -236,53 +236,147 @@
 }
 
 .paySection {
-  margin-top: 0.75rem;
-  padding: 0.75rem;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  background: #fafafa;
+  margin-top: 0.85rem;
+  padding: 1rem 1.05rem;
+  border: 1px solid #e7e5e4;
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, #fff 0%, #fafaf9 100%);
+  box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04);
   display: grid;
-  gap: 0.65rem;
+  gap: 0.85rem;
 }
 
 .payAllHeader {
   display: grid;
-  gap: 0.25rem;
+  gap: 0.2rem;
 }
 
 .payAllTitle {
   margin: 0;
-  font-size: 1.12rem;
-  font-weight: 600;
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: #1c1917;
 }
 
 .payAllHint {
   margin: 0;
-  font-size: 0.95rem;
-  color: #555;
-  line-height: 1.45;
+  font-size: 0.88rem;
+  color: #78716c;
+  line-height: 1.4;
 }
 
 .payAllTotals {
   display: grid;
   gap: 0.25rem;
-  padding-top: 0.35rem;
-  border-top: 1px solid #eee;
+  padding: 0.7rem 0.8rem;
+  border-radius: 8px;
+  background: #f5f5f4;
 }
 
 .payAllTotalRow {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   gap: 0.75rem;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
+  color: #44403c;
+}
+
+.payAllTotalRow strong {
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: #1c1917;
+  letter-spacing: -0.01em;
 }
 
 .eventBillingList {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.65rem;
+}
+
+.duesHorseBlock {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.duesHorseHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.duesHorseName {
+  font-size: 0.98rem;
+  font-weight: 650;
+  color: #1c1917;
+}
+
+.duesBreakdownList {
+  list-style: none;
+  margin: 0;
+  padding: 0.15rem 0 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.duesBreakdownItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+  color: #57534e;
+  line-height: 1.35;
+}
+
+.duesBreakdownLabel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.duesTourTag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #78716c;
+  background: #f5f5f4;
+  padding: 0.08rem 0.38rem;
+  border-radius: 999px;
+  text-transform: lowercase;
+}
+
+.duesBreakdownFee {
+  white-space: nowrap;
+  font-weight: 550;
+  color: #292524;
+}
+
+.duesBreakdownCovered .duesBreakdownFee {
+  font-weight: 500;
+  color: #a8a29e;
+  font-size: 0.8rem;
+}
+
+.duesBreakdownCovered .duesBreakdownLabel {
+  color: #a8a29e;
+}
+
+.duesBreakdownNote {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #a8a29e;
+  line-height: 1.4;
 }
 
 .eventBillingCompetitionTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
   font-size: 1.05rem;
   font-weight: 600;
   color: #222;
@@ -517,6 +611,85 @@
   background: #fef2f2;
 }
 
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(28, 25, 23, 0.45);
+}
+
+.confirmModal {
+  width: min(420px, 100%);
+  background: #fff;
+  border-radius: 14px;
+  padding: 1.2rem 1.25rem 1.15rem;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.confirmTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1c1917;
+  letter-spacing: -0.01em;
+}
+
+.confirmText {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: #57534e;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.confirmCancelBtn,
+.confirmDangerBtn {
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirmCancelBtn {
+  border: 1px solid #d6d3d1;
+  background: #fff;
+  color: #44403c;
+}
+
+.confirmCancelBtn:hover:not(:disabled) {
+  background: #f5f5f4;
+}
+
+.confirmDangerBtn {
+  border: 1px solid #b91c1c;
+  background: #b91c1c;
+  color: #fff;
+}
+
+.confirmDangerBtn:hover:not(:disabled) {
+  background: #991b1b;
+}
+
+.confirmCancelBtn:disabled,
+.confirmDangerBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .entryActionBtnPrimary {
   border: 1px solid #111;
   border-radius: 6px;
@@ -555,6 +728,23 @@
   cursor: not-allowed;
 }
 
+.entryPayBtnCovered {
+  background: #e5e7eb;
+  color: #6b7280;
+  opacity: 1;
+  cursor: not-allowed;
+  font-weight: 500;
+}
+
+.entryPayBtnCovered:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.payCoveredAmount {
+  text-decoration: line-through;
+}
+
 .entryFeeBadge {
   font-size: 0.85rem;
   font-weight: 600;
@@ -563,6 +753,28 @@
   border: 1px solid #fed7aa;
   border-radius: 4px;
   padding: 0.1rem 0.35rem;
+}
+
+.feeCovered {
+  color: #9ca3af !important;
+  background: #f3f4f6 !important;
+  border-color: #e5e7eb !important;
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
+.coveredBadge {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.billingLineCovered {
+  color: #9ca3af;
 }
 
 .changeHorsePanel {
@@ -621,6 +833,32 @@
   border-top: 1px solid #eee;
   display: grid;
   gap: 1rem;
+}
+
+.dayDivider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.35rem 0 0.15rem;
+}
+
+.dayDividerLine {
+  flex: 1;
+  height: 1px;
+  background: #d6d3d1;
+}
+
+.dayDividerLabel {
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #57534e;
+  background: #f5f5f4;
+  border: 1px solid #e7e5e4;
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
 }
 
 .competitionRow {

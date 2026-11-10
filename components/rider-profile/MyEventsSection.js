@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import {
+  Fragment,
   Suspense,
   createContext,
   useCallback,
@@ -160,9 +161,10 @@ function firstAmount(...values) {
 function getCompetitionFee(comp, horseRow) {
   if (comp && typeof comp === 'object') {
     const fee = firstAmount(
+      comp.payable,
+      comp.charge_due,
       comp.due,
       comp.amount,
-      comp.payable,
       comp.payable_amount,
       comp.charge
     );
@@ -170,9 +172,101 @@ function getCompetitionFee(comp, horseRow) {
   }
   const comps = horseRow?.competitions;
   if (Array.isArray(comps) && comps.length === 1) {
-    return horseRow.due;
+    return firstAmount(horseRow.charge_due, horseRow.due);
   }
-  return horseRow?.due ?? null;
+  return firstAmount(horseRow?.charge_due, horseRow?.due);
+}
+
+function getHorseBillingAmount(row) {
+  return firstAmount(row?.charge_due, row?.due);
+}
+
+function billingCompetitionIsUnpaid(comp) {
+  if (!comp || typeof comp !== 'object') return false;
+  const status = String(comp.payment_status || '').toLowerCase();
+  if (status === 'paid' || status === 'completed' || status === 'success') {
+    return false;
+  }
+  if (status === 'unpaid') return true;
+  if (comp.is_paid === true || comp.paid === true) return false;
+  if (comp.is_paid === false || comp.paid === false) return true;
+  const payable = firstAmount(comp.payable, comp.charge_due, comp.due);
+  return payable != null && Number(payable) > 0;
+}
+
+function findBillingCompetitionForEntry(billing, entry, competition) {
+  const entryId = entry?.entry_id ?? entry?.id;
+  const entryCompId = entry?.competition_id ?? competition?.competition_id;
+  const entryCompName =
+    entry?.competition_name || competition?.competition_name || '';
+  const horseId = entry?.horse_id;
+
+  for (const row of billing || []) {
+    if (
+      horseId != null &&
+      row?.horse_id != null &&
+      Number(row.horse_id) !== Number(horseId)
+    ) {
+      continue;
+    }
+    const comps = Array.isArray(row.competitions) ? row.competitions : [];
+    for (const comp of comps) {
+      if (!comp || typeof comp !== 'object') continue;
+      if (
+        entryId != null &&
+        comp.entry_id != null &&
+        Number(comp.entry_id) === Number(entryId)
+      ) {
+        return { row, comp };
+      }
+      const compId = comp.competition_id ?? comp.id;
+      const sameComp =
+        (entryCompId != null &&
+          compId != null &&
+          Number(compId) === Number(entryCompId)) ||
+        (entryCompName &&
+          getCompetitionLabel(comp).toLowerCase() ===
+            String(entryCompName).toLowerCase());
+      if (sameComp) return { row, comp };
+    }
+  }
+  return null;
+}
+
+function resolveCompetitionPayTarget(billing, entry, competition) {
+  const matched = findBillingCompetitionForEntry(billing, entry, competition);
+  const billed = matched?.comp;
+  const rawEntryId =
+    billed?.entry_id ?? entry?.entry_id ?? entry?.id ?? null;
+  const rawHorseId = matched?.row?.horse_id ?? entry?.horse_id ?? null;
+  const entryId =
+    rawEntryId != null && rawEntryId !== '' && Number.isFinite(Number(rawEntryId))
+      ? Number(rawEntryId)
+      : null;
+  const horseId =
+    rawHorseId != null && rawHorseId !== '' && Number.isFinite(Number(rawHorseId))
+      ? Number(rawHorseId)
+      : null;
+  if (entryId == null && horseId == null) return null;
+  if (billed && !billingCompetitionIsUnpaid(billed) && !isEntryUnpaid(entry)) {
+    return null;
+  }
+  if (!billed && !isEntryUnpaid(entry)) return null;
+  // Prefer horse charge_due so Pay matches horse_ids (one horse, not pay-all).
+  const horseAmount = getHorseBillingAmount(matched?.row);
+  return {
+    entryId,
+    horseId,
+    amount: firstAmount(
+      horseAmount,
+      billed?.payable,
+      billed?.charge_due,
+      billed?.due,
+      entry?.payable,
+      entry?.charge_due,
+      entry?.due
+    ),
+  };
 }
 
 function getCompetitionPaidAmount(comp, horseRow) {
@@ -266,16 +360,19 @@ function groupBillingByCompetition(
         });
       }
 
+      const due = getAmount(comp, row);
+      const listFee = getCompetitionListFee(comp, row, matchedCompetition);
       groups.get(key).lines.push({
         horseName: row.horse_name || horseFallback,
-        due: getAmount(comp, row),
-        listFee: getCompetitionListFee(comp, row, matchedCompetition),
+        due,
+        listFee,
         fallbackDue:
           getAmount(null, row) ??
           getAmount(comp, row) ??
           row.due,
         singleCompetition: list.length === 1,
         reason: row.reason,
+        covered: isCompetitionCoveredByHigherTour(row, comp),
       });
     });
   }
@@ -292,8 +389,49 @@ function groupBillingByCompetition(
             ? line.fallbackDue
             : null,
       reason: line.reason,
+      covered: Boolean(line.covered),
     })),
   }));
+}
+
+/** Lower unpaid tour covered when same horse still owes a higher tour fee. */
+function isCompetitionCoveredByHigherTour(billingRow, comp) {
+  if (!comp || typeof comp !== 'object') return false;
+  if (!billingCompetitionIsUnpaid(comp)) return false;
+
+  const payable = firstAmount(comp.payable, comp.charge_due, comp.due);
+  if (payable != null && Number(payable) === 0) return true;
+
+  const listFee = Number(
+    firstAmount(
+      comp.entry_fee,
+      comp.list_fee,
+      comp.fee,
+      payable
+    ) || 0
+  );
+  const horseDue = Number(getHorseBillingAmount(billingRow) || 0);
+  if (!(listFee > 0 && horseDue > 0)) return false;
+  return listFee < horseDue;
+}
+
+function resolveEntryListFeeAmount(entry, competition, billing) {
+  const matched = findBillingCompetitionForEntry(billing, entry, competition);
+  return firstAmount(
+    matched?.comp?.entry_fee,
+    matched?.comp?.list_fee,
+    entry?.entry_fee,
+    competition?.entry_fee,
+    findBillingListFeeForEntry(billing, entry, competition)
+  );
+}
+
+function isEntryCoveredByHigherTour(billing, entry, competition) {
+  const matched = findBillingCompetitionForEntry(billing, entry, competition);
+  if (matched?.row && matched?.comp) {
+    return isCompetitionCoveredByHigherTour(matched.row, matched.comp);
+  }
+  return false;
 }
 
 function formatHeight(height) {
@@ -652,25 +790,27 @@ function findBillingDueForEntry(billing, entry, competition) {
     });
 
     if (match && typeof match === 'object') {
-      const due =
-        match.due ??
-        match.amount ??
-        match.payable ??
-        match.payable_amount ??
-        match.charge ??
-        null;
-      if (due != null && due !== '') return due;
+      const due = firstAmount(
+        match.payable,
+        match.charge_due,
+        match.due,
+        match.amount,
+        match.payable_amount,
+        match.charge
+      );
+      if (due != null) return due;
     }
-    if (row.due != null && row.due !== '') return row.due;
+    const rowDue = firstAmount(row.charge_due, row.due);
+    if (rowDue != null) return rowDue;
   }
 
-  return (
-    entry?.due ??
-    entry?.amount_due ??
-    entry?.payable ??
-    entry?.payable_amount ??
-    entry?.charge ??
-    null
+  return firstAmount(
+    entry?.payable,
+    entry?.charge_due,
+    entry?.due,
+    entry?.amount_due,
+    entry?.payable_amount,
+    entry?.charge
   );
 }
 
@@ -694,11 +834,13 @@ function resolveEntryFeeLabel(
     competition,
     fallbackCurrency
   );
-  const listFee =
-    resolveEntryListFee(entry, competition) ??
-    findBillingListFeeForEntry(billing, entry, competition);
+  // Pay labels: only backend payable / charge_due / due — never sum or invent fees.
+  const payTarget = resolveCompetitionPayTarget(billing, entry, competition);
+  if (payTarget?.amount != null) {
+    return formatMoney(payTarget.amount, currency);
+  }
   const dueFee = findBillingDueForEntry(billing, entry, competition);
-  return formatFeeWithActualDue(listFee, dueFee, currency);
+  return formatMoney(dueFee, currency);
 }
 
 function EntryManageActions({
@@ -710,15 +852,30 @@ function EntryManageActions({
   onPay,
   paying = false,
   feeLabel,
+  payHorseId = null,
+  payEntryId = null,
+  paymentCovered = false,
+  coveredFeeLabel = null,
 }) {
   const { t, i18n } = useTranslation('riderProfile');
   const [changing, setChanging] = useState(false);
   const [selectedHorseId, setSelectedHorseId] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
-  if (!entry?.entry_id) return null;
-  if (!isEntryUnpaid(entry)) return null;
+  useEffect(() => {
+    if (!confirmRemove) return undefined;
+    const onKey = (event) => {
+      if (event.key === 'Escape' && !busy) setConfirmRemove(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [busy, confirmRemove]);
+
+  const canStartPay = payHorseId != null || payEntryId != null;
+  if (!entry?.entry_id && !canStartPay && !paymentCovered) return null;
+  if (!isEntryUnpaid(entry) && !canStartPay && !paymentCovered) return null;
 
   const locked = entryHasResults(entry);
   const registrationOpen = isCompetitionRegistrationOpen(competition);
@@ -728,8 +885,15 @@ function EntryManageActions({
     t,
     i18n.language
   );
-  const showManage = !locked && registrationOpen;
-  const showPay = Boolean(canPay && onPay && registrationOpen);
+  const showManage = Boolean(entry?.entry_id) && !locked && registrationOpen;
+  const showPay = Boolean(canPay && onPay && canStartPay && !paymentCovered);
+  const showCoveredPay = Boolean(paymentCovered);
+  const horseLabel =
+    capitalizeName(entry.horse_name) || t('events.thisHorse');
+  const competitionLabel =
+    entry.competition_name ||
+    competition?.competition_name ||
+    t('events.thisCompetition');
 
   const handleChangeHorse = async () => {
     if (!selectedHorseId) return;
@@ -750,27 +914,21 @@ function EntryManageActions({
   };
 
   const handleDelete = async () => {
-    const confirmed = window.confirm(
-      t('events.removeConfirm', {
-        horse: capitalizeName(entry.horse_name) || t('events.thisHorse'),
-        competition: entry.competition_name || t('events.thisCompetition'),
-      })
-    );
-    if (!confirmed) return;
-
     setError('');
     try {
       setBusy(true);
       await deleteMyEventEntry(eventId, entry.entry_id);
+      setConfirmRemove(false);
       await onUpdated();
     } catch (err) {
       setError(formatApiError(err, t, 'events.deleteFailed'));
+      setConfirmRemove(false);
     } finally {
       setBusy(false);
     }
   };
 
-  if (locked && !showPay) {
+  if (locked && !showPay && !showCoveredPay) {
     return (
       <p className={classes.entryLockedHint}>
         {t('events.resultsLocked')}
@@ -806,7 +964,13 @@ function EntryManageActions({
               <button
                 type="button"
                 className={classes.entryPayBtn}
-                onClick={() => onPay(entry.entry_id)}
+                onClick={() =>
+                  onPay(
+                    payHorseId != null
+                      ? { horseIds: [payHorseId] }
+                      : { entryIds: [payEntryId] }
+                  )
+                }
                 disabled={busy || paying}
                 title={
                   feeLabel
@@ -821,11 +985,28 @@ function EntryManageActions({
                     : t('events.pay')}
               </button>
             )}
+            {showCoveredPay && (
+              <button
+                type="button"
+                className={`${classes.entryPayBtn} ${classes.entryPayBtnCovered}`}
+                disabled
+                title={t('events.payCoveredHint')}
+              >
+                <span className={classes.payCoveredAmount}>
+                  {coveredFeeLabel
+                    ? t('events.payAmount', { amount: coveredFeeLabel })
+                    : t('events.pay')}
+                </span>
+              </button>
+            )}
             {showManage && (
               <button
                 type="button"
                 className={`${classes.entryActionBtn} ${classes.entryActionBtnDanger}`}
-                onClick={handleDelete}
+                onClick={() => {
+                  setError('');
+                  setConfirmRemove(true);
+                }}
                 disabled={busy || paying}
               >
                 {busy ? t('common.removing') : t('common.remove')}
@@ -904,6 +1085,54 @@ function EntryManageActions({
         </div>
       )}
       {error && <p className={classes.error}>{error}</p>}
+
+      {confirmRemove && (
+        <div
+          className={classes.confirmOverlay}
+          role="presentation"
+          onClick={() => {
+            if (!busy) setConfirmRemove(false);
+          }}
+        >
+          <div
+            className={classes.confirmModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="remove-entry-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 id="remove-entry-title" className={classes.confirmTitle}>
+              {t('events.removeConfirmTitle')}
+            </h3>
+            <p className={classes.confirmText}>
+              {t('events.removeConfirm', {
+                horse: horseLabel,
+                competition: competitionLabel,
+              })}
+            </p>
+            <div className={classes.confirmActions}>
+              <button
+                type="button"
+                className={classes.confirmCancelBtn}
+                onClick={() => setConfirmRemove(false)}
+                disabled={busy}
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="button"
+                className={classes.confirmDangerBtn}
+                onClick={() => void handleDelete()}
+                disabled={busy}
+              >
+                {busy
+                  ? t('common.removing')
+                  : t('events.removeConfirmAction')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1144,7 +1373,20 @@ function EventEntries({
             competition?.date ||
             group.entries[0]?.competition_date
         );
+        const prevDateKey =
+          groupIndex > 0
+            ? normalizeCompetitionDate(
+                groups[groupIndex - 1]?.competition?.competition_date ||
+                  groups[groupIndex - 1]?.competition?.date ||
+                  groups[groupIndex - 1]?.entries?.[0]?.competition_date
+              )
+            : null;
         const dayLabel = dateKey ? dayLabelsByDate[dateKey] : null;
+        const showDayBreak = Boolean(
+          dayLabel &&
+            (groupIndex === 0 ||
+              (dateKey && prevDateKey && dateKey !== prevDateKey))
+        );
         const heightLabel =
           details.height ||
           resolveCompetitionHeight(null, competition) ||
@@ -1166,13 +1408,24 @@ function EventEntries({
           );
 
         return (
-          <div
+          <Fragment
             key={
               competition?.competition_id ??
               `${name}-${groupIndex}`
             }
-            className={classes.competitionRow}
           >
+          {showDayBreak && (
+            <div className={classes.dayDivider} role="separator">
+              <span className={classes.dayDividerLine} aria-hidden />
+              <span className={classes.dayDividerLabel}>
+                {dayLabel ||
+                  formatDisplayDate(dateKey, i18n.language) ||
+                  t('events.day', { n: toDayRoman(groupIndex + 1) })}
+              </span>
+              <span className={classes.dayDividerLine} aria-hidden />
+            </div>
+          )}
+          <div className={classes.competitionRow}>
             <div className={classes.competitionHead}>
               <span className={classes.competitionName}>{name}</span>
               {tourLabel && (
@@ -1215,6 +1468,20 @@ function EventEntries({
                   competition,
                   horseImageById
                 );
+                const payTarget = resolveCompetitionPayTarget(
+                  billing,
+                  entry,
+                  competition
+                );
+                const covered = isEntryCoveredByHigherTour(
+                  billing,
+                  entry,
+                  competition
+                );
+                const listFeeLabel = formatMoney(
+                  resolveEntryListFeeAmount(entry, competition, billing),
+                  unpaidCurrency
+                );
                 const entryFeeLabel = resolveEntryFeeLabel(
                   entry,
                   competition,
@@ -1223,7 +1490,10 @@ function EventEntries({
                 );
                 const isPayingThis =
                   payingEntryId != null &&
-                  String(payingEntryId) === String(entry.entry_id);
+                  ((payTarget?.horseId != null &&
+                    String(payingEntryId) === `horse:${payTarget.horseId}`) ||
+                    (payTarget?.entryId != null &&
+                      String(payingEntryId) === String(payTarget.entryId)));
 
                 return (
                   <div
@@ -1253,7 +1523,7 @@ function EventEntries({
                           {capitalizeName(entry.horse_name) || '—'}
                         </span>
                         <div className={classes.entryBadges}>
-                          {unpaid && (
+                          {unpaid && !covered && (
                             <span className={classes.unpaidBadge}>
                               {t('events.unpaid')}
                             </span>
@@ -1263,7 +1533,19 @@ function EventEntries({
                               {t('events.paid')}
                             </span>
                           )}
-                          {unpaid && entryFeeLabel && (
+                          {unpaid && covered && listFeeLabel && (
+                            <>
+                              <span
+                                className={`${classes.entryFeeBadge} ${classes.feeCovered}`}
+                              >
+                                {listFeeLabel}
+                              </span>
+                              <span className={classes.coveredBadge}>
+                                {t('events.includedInHighestTour')}
+                              </span>
+                            </>
+                          )}
+                          {unpaid && !covered && entryFeeLabel && (
                             <span className={classes.entryFeeBadge}>
                               {entryFeeLabel}
                             </span>
@@ -1281,10 +1563,14 @@ function EventEntries({
                         entry={entry}
                         competition={competition}
                         onUpdated={onUpdated}
-                        canPay={canPayEntry}
+                        canPay={canPayEntry && !covered}
                         onPay={onPayEntry}
                         paying={isPayingThis}
                         feeLabel={entryFeeLabel}
+                        payHorseId={covered ? null : payTarget?.horseId ?? null}
+                        payEntryId={covered ? null : payTarget?.entryId ?? null}
+                        paymentCovered={covered}
+                        coveredFeeLabel={listFeeLabel}
                       />
                     )}
                   </div>
@@ -1292,6 +1578,7 @@ function EventEntries({
               })}
             </div>
           </div>
+          </Fragment>
         );
       })}
     </div>
@@ -1591,21 +1878,51 @@ function UpcomingEventCard({
   const [paying, setPaying] = useState(false);
   const [payingEntryId, setPayingEntryId] = useState(null);
   const [payError, setPayError] = useState('');
+  const scrollToPayAfterRegister = useRef(false);
 
   const hasCover = Boolean(event.cover_image);
   const competitions = event.competitions ?? [];
   const dayLabelsByDate = buildCompetitionDayLabels(competitions, t);
   const hasUnpaid = Boolean(event.has_unpaid_entries);
   const unpaidCurrency = event.unpaid_currency || 'GEL';
-  const unpaidTotal = formatMoney(event.unpaid_total, unpaidCurrency);
   const chargeCurrency = event.charge_currency || unpaidCurrency;
-  const chargeDue = formatMoney(event.charge_due, chargeCurrency);
+  const billing = Array.isArray(event.billing) ? event.billing : [];
+  const billingDueFallback = (() => {
+    let sum = 0;
+    let any = false;
+    for (const row of billing) {
+      const amt = firstAmount(row?.charge_due, row?.due);
+      if (amt == null || amt === '') continue;
+      const n = Number(amt);
+      if (!Number.isFinite(n) || n <= 0) continue;
+      sum += n;
+      any = true;
+    }
+    return any ? String(sum) : null;
+  })();
+  const pendingAmount = firstAmount(
+    event.pending_payment?.amount,
+    event.pending_payment?.original_amount
+  );
+  // Prefer backend charge_due (highest-tour remainder). Do not invent fees.
+  const chargeDueAmount = firstAmount(
+    event.charge_due,
+    event.due,
+    event.unpaid_total,
+    pendingAmount,
+    billingDueFallback
+  );
+  const chargeDue = formatMoney(chargeDueAmount, chargeCurrency);
+  const unpaidTotal = formatMoney(
+    firstAmount(event.unpaid_total, event.charge_due, event.due, billingDueFallback),
+    unpaidCurrency
+  );
   const showChargePreview =
     event.charge_due != null &&
     event.charge_due !== '' &&
+    event.unpaid_total != null &&
+    event.unpaid_total !== '' &&
     String(event.charge_due) !== String(event.unpaid_total);
-  const billing = Array.isArray(event.billing) ? event.billing : [];
-  const billingGroups = groupBillingByCompetition(billing, competitions, t);
   const pendingUrl = getEventPendingRedirect(event);
   const gate = resolveRegisterGate(
     event,
@@ -1613,27 +1930,12 @@ function UpcomingEventCard({
     registerBlockedReason,
     t
   );
-  const paymentsOpen = gate.anyCompetitionOpen;
-  const payBlocked = event.can_pay === false && !pendingUrl;
-  const canPay = !payBlocked && paymentsOpen;
-  const canPayEntry = canPay && !pendingUrl;
+  // Pay all only on the card — not gated by registration_open / pendingUrl.
+  const canPay = event.can_pay === true;
   const payBlockedReason = rewriteAgeBlockedReason(
     event.pay_blocked_reason || '',
     t
   );
-  const unpaidEntryCount = (event.entries ?? []).filter((e) =>
-    isEntryUnpaid(e)
-  ).length;
-  const unpaidOpenIds = (event.entries ?? [])
-    .filter(
-      (entry) =>
-        isEntryUnpaid(entry) &&
-        isCompetitionRegistrationOpen(
-          findCompetitionForEntry(competitions, entry)
-        )
-    )
-    .map((entry) => entry.entry_id)
-    .filter((id) => id != null && id !== '');
   const registerBlocked = gate.blocked || Boolean(forbiddenBlockReason);
   const blockedReason = forbiddenBlockReason || gate.reason;
 
@@ -1708,8 +2010,17 @@ function UpcomingEventCard({
           : t('events.registrationCreated')
       );
       setSelections({});
+      scrollToPayAfterRegister.current = true;
       await onRegistered();
+      window.setTimeout(() => {
+        if (!scrollToPayAfterRegister.current) return;
+        const payEl = document.getElementById(`event-pay-${event.id}`);
+        if (!payEl) return;
+        scrollToPayAfterRegister.current = false;
+        payEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 200);
     } catch (err) {
+      scrollToPayAfterRegister.current = false;
       const message = formatApiError(err, t, 'events.registrationFailed');
       setRegisterError(message);
       if (err instanceof ApiRequestError && err.status === 403) {
@@ -1721,22 +2032,52 @@ function UpcomingEventCard({
     }
   };
 
+  useEffect(() => {
+    if (!scrollToPayAfterRegister.current || !hasUnpaid) return;
+    const timer = window.setTimeout(() => {
+      if (!scrollToPayAfterRegister.current) return;
+      const payEl = document.getElementById(`event-pay-${event.id}`);
+      if (!payEl) return;
+      scrollToPayAfterRegister.current = false;
+      payEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [event.id, hasUnpaid, billing, event.has_unpaid_entries]);
+
   const redirectToBank = (url) => {
     window.location.href = url;
   };
 
-  const handlePay = async (entryIds) => {
+  const handlePay = async ({ horseIds, entryIds, payAll = false } = {}) => {
     setPayError('');
-    const ids = Array.isArray(entryIds)
-      ? entryIds.filter((id) => id != null && id !== '')
+    const horses = Array.isArray(horseIds)
+      ? horseIds
+          .map(Number)
+          .filter((id) => Number.isFinite(id))
       : [];
+    const entries = Array.isArray(entryIds)
+      ? entryIds
+          .map(Number)
+          .filter((id) => Number.isFinite(id))
+      : [];
+    // Scoped pay must never fall through to empty body (pay-all).
+    if (!payAll && horses.length === 0 && entries.length === 0) {
+      setPayError(t('events.payStartFailed'));
+      return;
+    }
     try {
       setPaying(true);
-      setPayingEntryId(ids.length === 1 ? ids[0] : 'all');
-      const response = await payForEvent(
-        event.id,
-        ids.length === 1 ? { entry_ids: [Number(ids[0])] } : {}
-      );
+      if (horses.length === 1) {
+        setPayingEntryId(`horse:${horses[0]}`);
+      } else if (entries.length === 1) {
+        setPayingEntryId(entries[0]);
+      } else {
+        setPayingEntryId('all');
+      }
+      const response = await payForEvent(event.id, {
+        horse_ids: horses.length > 0 ? horses : undefined,
+        entry_ids: horses.length > 0 ? undefined : entries.length > 0 ? entries : undefined,
+      });
       const redirectUrl = getPaymentRedirectUrl(response);
       if (!redirectUrl) {
         setPayError(t('events.noRedirect'));
@@ -1818,8 +2159,8 @@ function UpcomingEventCard({
             competitions={competitions}
             onUpdated={onRegistered}
             horseImageById={horseImageById}
-            canPayEntry={canPayEntry}
-            onPayEntry={(entryId) => void handlePay([entryId])}
+            canPayEntry={canPay}
+            onPayEntry={handlePay}
             payingEntryId={payingEntryId}
             unpaidCurrency={unpaidCurrency}
             billing={billing}
@@ -1827,88 +2168,138 @@ function UpcomingEventCard({
         )}
 
         {hasUnpaid && (
-          <div className={classes.paySection}>
+          <div
+            id={`event-pay-${event.id}`}
+            className={classes.paySection}
+          >
             <div className={classes.payAllHeader}>
               <h4 className={classes.payAllTitle}>{t('events.payAllTitle')}</h4>
-              <p className={classes.payAllHint}>
-                {t('events.payAllHint', {
-                  count:
-                    unpaidEntryCount > 0
-                      ? t('events.payAllHintCount', { count: unpaidEntryCount })
-                      : '',
-                })}
-              </p>
+              <p className={classes.payAllHint}>{t('events.payAllHint')}</p>
             </div>
 
-            {billingGroups.length > 0 && (
+            {billing.length > 0 && (
               <div className={classes.eventBillingList}>
-                {billingGroups.map((group) => (
-                  <div key={group.key} className={classes.eventBillingCompetition}>
-                    <div className={classes.eventBillingCompetitionTitle}>
-                      {translateBillingReason(
-                        group.competitionName,
-                        t,
-                        i18n.language
-                      )}
-                    </div>
-                    <div className={classes.eventBillingHorseLines}>
-                      {group.lines.map((line, index) => (
-                        <div
-                          key={`${group.key}-${line.horseName}-${index}`}
-                          className={classes.eventBillingHorseLine}
-                        >
-                          <span>
-                            {capitalizeName(line.horseName)}
-                            {line.reason
-                              ? ` · ${translateBillingReason(
-                                  line.reason,
-                                  t,
-                                  i18n.language
-                                )}`
-                              : ''}
+                {(() => {
+                  const duesRows = billing
+                    .map((row) => {
+                      const horseDue = firstAmount(row.charge_due, row.due);
+                      const comps = (row.competitions || []).filter((c) =>
+                        billingCompetitionIsUnpaid(c)
+                      );
+                      if (
+                        (horseDue == null || Number(horseDue) <= 0) &&
+                        comps.length === 0
+                      ) {
+                        return null;
+                      }
+                      return { row, horseDue, comps };
+                    })
+                    .filter(Boolean);
+                  const showPerHorseAmount = duesRows.length > 1;
+
+                  return duesRows.map(({ row, horseDue, comps }) => {
+                    const horseDueLabel = formatMoney(
+                      horseDue,
+                      row.charge_currency || row.currency || unpaidCurrency
+                    );
+                    const alreadyPaid = firstAmount(row.already_paid);
+                    return (
+                      <div
+                        key={row.horse_id ?? row.horse_name}
+                        className={classes.duesHorseBlock}
+                      >
+                        <div className={classes.duesHorseHeader}>
+                          <span className={classes.duesHorseName}>
+                            {capitalizeName(row.horse_name) || t('common.horse')}
                           </span>
-                          <span className={classes.eventBillingAmount}>
-                            {formatMoney(line.due, unpaidCurrency) || '—'}
-                          </span>
+                          {showPerHorseAmount && horseDueLabel ? (
+                            <span className={classes.eventBillingAmount}>
+                              {horseDueLabel}
+                            </span>
+                          ) : null}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                        {comps.length > 0 && (
+                          <ul className={classes.duesBreakdownList}>
+                            {comps.map((comp) => {
+                              const tour =
+                                comp.tour_level_display ||
+                                comp.tour_level ||
+                                '';
+                              const listFee = firstAmount(comp.entry_fee);
+                              const maxFee = firstAmount(row.max_fee, horseDue);
+                              const covered =
+                                listFee != null &&
+                                maxFee != null &&
+                                Number(listFee) < Number(maxFee);
+                              const feeLabel = formatMoney(
+                                listFee,
+                                comp.entry_currency ||
+                                  row.currency ||
+                                  unpaidCurrency
+                              );
+                              return (
+                                <li
+                                  key={
+                                    comp.entry_id ??
+                                    `${row.horse_id}-${comp.competition_id}`
+                                  }
+                                  className={`${classes.duesBreakdownItem}${
+                                    covered
+                                      ? ` ${classes.duesBreakdownCovered}`
+                                      : ''
+                                  }`}
+                                >
+                                  <span className={classes.duesBreakdownLabel}>
+                                    {comp.competition_name ||
+                                      t('events.competition')}
+                                    {tour ? (
+                                      <span className={classes.duesTourTag}>
+                                        {tour}
+                                      </span>
+                                    ) : null}
+                                  </span>
+                                  <span className={classes.duesBreakdownFee}>
+                                    {covered
+                                      ? t('events.includedInHighestTour')
+                                      : feeLabel || '—'}
+                                  </span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                        {alreadyPaid != null && Number(alreadyPaid) > 0 ? (
+                          <p className={classes.duesBreakdownNote}>
+                            {t('events.highestTourRemainderNote', {
+                              paid: formatMoney(
+                                alreadyPaid,
+                                row.currency || unpaidCurrency
+                              ),
+                              due: horseDueLabel || '—',
+                            })}
+                          </p>
+                        ) : null}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             )}
 
             <div className={classes.payAllTotals}>
-              {unpaidTotal && (
-                <div className={classes.payAllTotalRow}>
-                  <span>{t('events.unpaidTotal')}</span>
-                  <strong>{unpaidTotal}</strong>
-                </div>
-              )}
-              {showChargePreview && chargeDue && (
-                <div className={classes.payAllTotalRow}>
-                  <span>
-                    {t('events.amountToCharge')}
-                    {event.fx ? ` (${event.fx})` : ''}
-                  </span>
-                  <strong>{chargeDue}</strong>
-                </div>
-              )}
+              <div className={classes.payAllTotalRow}>
+                <span>{t('events.amountToCharge')}</span>
+                <strong>{chargeDue || unpaidTotal || '—'}</strong>
+              </div>
             </div>
 
-            {payBlockedReason && !canPay && paymentsOpen && !pendingUrl && (
+            {payBlockedReason && !canPay && !pendingUrl && (
               <p className={classes.competitionHint}>{payBlockedReason}</p>
-            )}
-
-            {!paymentsOpen && (
-              <p className={classes.competitionHint}>{t('events.payClosed')}</p>
             )}
 
             {payError && <p className={classes.error}>{payError}</p>}
 
-            {paymentsOpen &&
-              unpaidOpenIds.length > 0 &&
-              (pendingUrl || (canPay && !pendingUrl)) && (
+            {(pendingUrl || canPay) && (
               <div className={classes.eventPayRow}>
                 {pendingUrl ? (
                   <button
@@ -1917,13 +2308,19 @@ function UpcomingEventCard({
                     onClick={() => redirectToBank(pendingUrl)}
                     disabled={paying}
                   >
-                    {t('events.continuePayment')}
+                    {paying
+                      ? t('events.redirecting')
+                      : chargeDue || unpaidTotal
+                        ? t('events.payAllAmount', {
+                            amount: chargeDue || unpaidTotal,
+                          })
+                        : t('events.continuePayment')}
                   </button>
                 ) : (
                   <button
                     type="button"
                     className={classes.payBtn}
-                    onClick={() => void handlePay([])}
+                    onClick={() => void handlePay({ payAll: true })}
                     disabled={paying}
                   >
                     {paying && payingEntryId === 'all'
@@ -1956,19 +2353,44 @@ function UpcomingEventCard({
 
             {expanded && (
               <div className={classes.registrationPanel}>
-                {competitions.map((comp) => {
+                {competitions.map((comp, index) => {
                   const dateKey = normalizeCompetitionDate(
                     comp.competition_date || comp.date
                   );
+                  const prevDateKey =
+                    index > 0
+                      ? normalizeCompetitionDate(
+                          competitions[index - 1]?.competition_date ||
+                            competitions[index - 1]?.date
+                        )
+                      : null;
+                  const dayLabel = dateKey ? dayLabelsByDate[dateKey] : null;
+                  const showDayBreak = Boolean(
+                    dayLabel &&
+                      (index === 0 ||
+                        (dateKey && prevDateKey && dateKey !== prevDateKey))
+                  );
                   return (
-                    <CompetitionRegistrationRow
-                      key={comp.competition_id}
-                      competition={comp}
-                      selectedHorseIds={selections[comp.competition_id] ?? []}
-                      onToggleHorse={handleToggleHorse}
-                      dayLabel={dateKey ? dayLabelsByDate[dateKey] : null}
-                      horseImageById={horseImageById}
-                    />
+                    <Fragment key={comp.competition_id}>
+                      {showDayBreak && (
+                        <div className={classes.dayDivider} role="separator">
+                          <span className={classes.dayDividerLine} aria-hidden />
+                          <span className={classes.dayDividerLabel}>
+                            {dayLabel ||
+                              formatDisplayDate(dateKey, i18n.language) ||
+                              t('events.day', { n: toDayRoman(index + 1) })}
+                          </span>
+                          <span className={classes.dayDividerLine} aria-hidden />
+                        </div>
+                      )}
+                      <CompetitionRegistrationRow
+                        competition={comp}
+                        selectedHorseIds={selections[comp.competition_id] ?? []}
+                        onToggleHorse={handleToggleHorse}
+                        dayLabel={dayLabel}
+                        horseImageById={horseImageById}
+                      />
+                    </Fragment>
                   );
                 })}
 
@@ -2193,7 +2615,8 @@ function MyEventsProviderContent({ children }) {
     returnHandled.current = true;
     setHighlightEventId(eventId);
 
-    if (payment === 'success') {
+    // TBC uses a single return URL (payment=return); keep success/fail for older links.
+    if (payment === 'return' || payment === 'success') {
       void pollAfterSuccessReturn(eventId);
     } else if (payment === 'fail') {
       setPaymentError(t('events.payFailed'));

@@ -24,7 +24,7 @@ function CabinetReturnRedirect() {
   );
 }
 
-/** BOG return URLs: /cabinet?payment=success|fail&eventId={id} */
+/** TBC return URLs: /cabinet?payment=return&eventId={id} (also success|fail) */
 export default function CabinetPage() {
   return (
     <Suspense

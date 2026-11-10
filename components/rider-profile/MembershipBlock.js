@@ -67,10 +67,30 @@ function extractPaymentList(payload) {
   return [];
 }
 
-function paymentBogOrderId(item) {
-  const value = item?.bog_order_id || item?.order_id;
+function paymentOrderId(item) {
+  // Backend still may send bog_order_id; value is now the TBC payId.
+  const value =
+    item?.bog_order_id ||
+    item?.order_id ||
+    item?.pay_id ||
+    item?.tbc_order_id ||
+    item?.tbc_pay_id;
   if (value == null || value === '') return '';
   return String(value);
+}
+
+function resolvePaymentProviderLabel(provider, t) {
+  const key = String(provider || 'tbc').toLowerCase();
+  if (key === 'tbc' || key === 'tbcpay' || key === 'tbc_bank') {
+    return t('membership.providerTbcName');
+  }
+  if (key === 'bog') {
+    return t('membership.providerBogName');
+  }
+  if (!provider) {
+    return t('membership.providerTbcName');
+  }
+  return String(provider);
 }
 
 function isMembershipPayment(row) {
@@ -107,7 +127,7 @@ function normalizePayment(row, fallbackCurrency = 'GEL') {
     currency,
     status: row.status || row.payment_status || 'paid',
     label: row.reason || row.description || row.title || '',
-    bogOrderId: paymentBogOrderId(row),
+    orderId: paymentOrderId(row),
   };
 }
 
@@ -129,7 +149,7 @@ function membershipAsPayment(data) {
     currency: data?.fee?.currency || data?.currency || 'GEL',
     status: 'paid',
     label: '',
-    bogOrderId: paymentBogOrderId(data) || paymentBogOrderId(data?.last_payment),
+    orderId: paymentOrderId(data) || paymentOrderId(data?.last_payment),
   };
 }
 
@@ -168,7 +188,7 @@ function isPendingPayment(data) {
   return data?.status === 'pending_payment' || Boolean(getPendingRedirectUrl(data));
 }
 
-function BogOrderIdRow({ orderId }) {
+function PaymentOrderIdRow({ orderId }) {
   const { t } = useTranslation('riderProfile');
   const [copied, setCopied] = useState(false);
 
@@ -194,7 +214,7 @@ function BogOrderIdRow({ orderId }) {
 
   return (
     <div className={classes.historyOrderRow}>
-      <span className={classes.historyOrderLabel}>{t('membership.bogOrderId')}</span>
+      <span className={classes.historyOrderLabel}>{t('membership.orderId')}</span>
       <code className={classes.historyOrderId} title={orderId}>
         {orderId}
       </code>
@@ -291,12 +311,13 @@ function MembershipBlockContent() {
     const payment = searchParams.get('payment');
     if (!payment) return;
 
-    // Event entry BOG returns include eventId — handled by MyEventsSection.
+    // Event entry returns include eventId — handled by MyEventsSection.
     if (searchParams.get('eventId')) return;
 
     returnHandled.current = true;
 
-    if (payment === 'success') {
+    // TBC uses a single return URL (payment=return); keep success/fail for older links.
+    if (payment === 'return' || payment === 'success') {
       pollAfterSuccessReturn();
     } else if (payment === 'fail') {
       setReturnMessage('');
@@ -455,10 +476,7 @@ function MembershipBlockContent() {
     returnMessage === 'stillProcessing'
       ? t(`membership.${returnMessage}`)
       : returnMessage;
-  const paymentMethod =
-    data?.payment_provider === 'bog' || !data?.payment_provider
-      ? t('membership.providerBogName')
-      : data.payment_provider;
+  const paymentMethod = resolvePaymentProviderLabel(data?.payment_provider, t);
   const sortedPayments = [...payments].sort((a, b) => {
     const left = a.date ? new Date(a.date).getTime() : 0;
     const right = b.date ? new Date(b.date).getTime() : 0;
@@ -628,7 +646,7 @@ function MembershipBlockContent() {
                           {payment.label}
                         </span>
                       ) : null}
-                      <BogOrderIdRow orderId={payment.bogOrderId} />
+                      <PaymentOrderIdRow orderId={payment.orderId} />
                     </div>
                     <div className={classes.historyMeta}>
                       <strong>

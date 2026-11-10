@@ -2,14 +2,21 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { getAccessToken } from '@/lib/auth/token';
 import logo from '@/public/logos/federation-logo-white.png';
 import classes from '@/styles/sidebar/sidebar.module.css';
 import LanguageSwitcher from '../language-switcher/languageSwitcher';
 
 export default function Sidebar({ isMenuOpen, setIsMenuOpen }) {
   const { t } = useTranslation('sidebar'); // loading the sidebar namespace
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setLoggedIn(Boolean(getAccessToken()));
+  }, [isMenuOpen]);
 
   return (
     <>
@@ -81,7 +88,10 @@ export default function Sidebar({ isMenuOpen, setIsMenuOpen }) {
             {t('news')}
           </Link>
 
-          <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+          <Link
+            href={loggedIn ? '/rider-profile/' : '/login/'}
+            onClick={() => setIsMenuOpen(false)}
+          >
             {t('athleteProfile')}
           </Link>
 
