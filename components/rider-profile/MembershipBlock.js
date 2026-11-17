@@ -549,9 +549,14 @@ function MembershipBlockContent() {
 
         {isActive && data?.next_payment_date && !processingPayment && (
           <p className={classes.blockedNote}>
-            {t('membership.nextPaymentFrom', {
-              date: formatLongDate(data.next_payment_date, i18n.language),
-            })}
+            {t(
+              data?.is_complimentary
+                ? 'membership.complimentaryUntil'
+                : 'membership.nextPaymentFrom',
+              {
+                date: formatLongDate(data.next_payment_date, i18n.language),
+              }
+            )}
           </p>
         )}
 
