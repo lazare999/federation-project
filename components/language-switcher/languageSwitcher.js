@@ -1,22 +1,18 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
 import classes from '@/styles/language-switcher/languageSwitcher.module.css';
 
 export default function LanguageSwitcher() {
   const { t, i18n } = useTranslation('common');
-  const queryClient = useQueryClient();
 
+  // Every API query key includes the language, so switching simply makes the
+  // queries for the new language load. Invalidating the old-language queries
+  // here used to refetch them in the *new* language and cache that under the
+  // old key, which showed wrong / missing names after switching back.
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
-    queryClient.invalidateQueries({ queryKey: ['events'] });
-    queryClient.invalidateQueries({ queryKey: ['event'] });
-    queryClient.invalidateQueries({ queryKey: ['horses'] });
-    queryClient.invalidateQueries({ queryKey: ['news'] });
-    queryClient.invalidateQueries({ queryKey: ['newsItem'] });
-    queryClient.invalidateQueries({ queryKey: ['sponsors'] });
   };
 
   return (

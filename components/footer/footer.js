@@ -2,10 +2,12 @@
 
 import classes from '@/styles/footer/footer.module.css';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 
 export default function Footer() {
   const { t } = useTranslation('footer');
+  const { t: tLegal } = useTranslation('legal');
 
   return (
     <div className={classes.footerContainer}>
@@ -63,6 +65,12 @@ export default function Footer() {
             </a>
           </div>
         </div>
+
+        <nav className={classes.legalLinks} aria-label="Legal">
+          <Link href="/terms/">{tLegal('links.terms')}</Link>
+          <span aria-hidden>·</span>
+          <Link href="/privacy/">{tLegal('links.privacy')}</Link>
+        </nav>
       </div>
     </div>
   );

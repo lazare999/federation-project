@@ -271,6 +271,8 @@ function MembershipBlockContent() {
           setReturnMessage('success');
           setProcessingPayment(false);
           clearPaymentQuery();
+          // Let the events block re-check registration eligibility.
+          window.dispatchEvent(new Event('rider:membership-updated'));
           return;
         }
         if (!isPendingPayment(latest)) {
@@ -359,10 +361,6 @@ function MembershipBlockContent() {
     }
   };
 
-  const handleContinuePayment = () => {
-    const url = getPendingRedirectUrl(data);
-    if (url) redirectToBank(url);
-  };
 
   const openPaymentHistory = async () => {
     setHistoryOpen(true);
@@ -448,23 +446,21 @@ function MembershipBlockContent() {
   }
 
   const isActive = isMembershipActive(data);
-  const pendingRedirect = getPendingRedirectUrl(data);
   const canPay = Boolean(data?.can_pay);
   const payBlockedReason = rewriteAgeBlockedReason(
     data?.pay_blocked_reason,
     t
   );
-  const showContinue = Boolean(pendingRedirect);
-  const showPayButton = canPay && !showContinue && !processingPayment;
+  // Membership is paid once per year — no new payment while active.
+  // An abandoned checkout (rider pressed Back) is not surfaced: the normal Pay
+  // button is shown and the backend reuses the open checkout for it.
+  const showPayButton = canPay && !isActive && !processingPayment;
 
   let statusClass = classes.statusInactive;
   let statusLabel = t('membership.inactive');
   if (isActive) {
     statusClass = classes.statusActive;
     statusLabel = t('membership.active');
-  } else if (data?.status === 'pending_payment' || showContinue) {
-    statusClass = classes.statusPending;
-    statusLabel = t('membership.pendingPayment');
   }
 
   const payButtonLabel = isActive
@@ -551,22 +547,19 @@ function MembershipBlockContent() {
 
         {actionError && <p className={classes.error}>{actionError}</p>}
 
-        {payBlockedReason && !showPayButton && !showContinue && (
+        {isActive && data?.next_payment_date && !processingPayment && (
+          <p className={classes.blockedNote}>
+            {t('membership.nextPaymentFrom', {
+              date: formatLongDate(data.next_payment_date, i18n.language),
+            })}
+          </p>
+        )}
+
+        {payBlockedReason && !isActive && !showPayButton && (
           <p className={classes.blockedNote}>{payBlockedReason}</p>
         )}
 
         <div className={classes.cardActions}>
-          {showContinue && (
-            <button
-              type="button"
-              className={classes.cardPayBtn}
-              onClick={handleContinuePayment}
-              disabled={paying || processingPayment}
-            >
-              {t('membership.continuePayment')}
-            </button>
-          )}
-
           {showPayButton && (
             <button
               type="button"

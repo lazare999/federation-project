@@ -1,0 +1,163 @@
+{
+  "updated": "Effective date: {{date}}",
+  "entity": {
+    "title": "Company details",
+    "name": "Legal name",
+    "idCode": "Identification code",
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email"
+  },
+  "links": {
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy"
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "intro": "These Terms of Service govern the use of the website {{website}} and the paid services of {{legalName}} (identification code {{idCode}}), hereinafter “the Federation”. By creating an account or making a payment you accept these terms.",
+    "sections": [
+      {
+        "heading": "Services",
+        "paragraphs": [
+          "Through the rider cabinet on this website the Federation provides the following paid services:"
+        ],
+        "items": [
+          "Annual Federation membership — required to register for competitions. It is valid for one year from the day of payment.",
+          "Competition entry — registration of a rider’s horse for competitions of an event published on the website."
+        ]
+      },
+      {
+        "heading": "Prices",
+        "paragraphs": [
+          "All prices are in Georgian lari (GEL) and are shown in the rider cabinet before payment."
+        ],
+        "items": [
+          "Annual membership: 150 GEL (age 18+), 100 GEL (age 12–17), 50 GEL (age 8–11). The price is determined by the rider’s age on the day of payment.",
+          "Competition entry fee per horse, by tour: Silver — 100 GEL, Gold — 150 GEL, Bronze — 50 GEL. For each horse in an event the rider pays once, the fee of the highest tour that horse is registered for; lower tours of the same event are included.",
+          "The Federation may set a different fee for a specific competition. The exact amount is always shown before payment."
+        ]
+      },
+      {
+        "heading": "Payment",
+        "paragraphs": [
+          "Payments are processed by the licensed payment provider Flitt. You can pay with a Visa or Mastercard card, Apple Pay or Google Pay. Card details are entered on the secure Flitt payment page and are not received or stored by the Federation."
+        ]
+      },
+      {
+        "heading": "Delivery policy",
+        "paragraphs": [
+          "All services are digital; nothing is delivered physically.",
+          "Membership is activated immediately after a successful payment, and its validity is shown in the rider cabinet.",
+          "A competition entry is marked as paid immediately after a successful payment, and the rider appears on the start list. A payment receipt is sent to the email address on the account.",
+          "If the status in the cabinet has not updated within a few minutes after payment, contact us at {{email}}."
+        ]
+      },
+      {
+        "heading": "Refund policy",
+        "paragraphs": [
+          "Payments for membership and competition entry fees are non-refundable, including when the rider cancels a registration or does not take part in a competition.",
+          "If an amount was charged as a result of a technical error (for example, the same payment was charged twice), contact us at {{email}} with the payment details and we will review the case."
+        ]
+      },
+      {
+        "heading": "Account",
+        "paragraphs": [
+          "Rider accounts are created by invitation from the Federation. You are responsible for keeping your password confidential and for the accuracy of the data in your profile (name, date of birth, contact details, horses)."
+        ]
+      },
+      {
+        "heading": "Competitions",
+        "paragraphs": [
+          "Registration for each competition closes at 18:00 Tbilisi time on the day before it is held. Participation is subject to the Federation’s competition rules published on the website. The Federation may change the schedule of an event."
+        ]
+      },
+      {
+        "heading": "Changes to these terms",
+        "paragraphs": [
+          "The Federation may update these terms. The current version and its effective date are always published on this page. Payments are governed by the version in force on the day of payment."
+        ]
+      },
+      {
+        "heading": "Contact",
+        "paragraphs": [
+          "Questions about these terms or a payment: {{email}}, {{phone}}, {{address}}."
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "intro": "This Privacy Policy explains how {{legalName}} (identification code {{idCode}}), hereinafter “the Federation”, collects and uses personal data on the website {{website}}, in accordance with the Law of Georgia on Personal Data Protection.",
+    "sections": [
+      {
+        "heading": "Data we collect",
+        "items": [
+          "Account and profile data: name (in Latin and Georgian), email, phone, date of birth, country, equestrian club, profile photo.",
+          "Horse data: name, passport number, year of birth, level, colour, sex, club, photo.",
+          "Competition data: registrations, start lists and results.",
+          "Payment data: amount, currency, status, date and order number. Card details are processed by Flitt; the Federation does not receive or store them.",
+          "Technical data: login token and language preference stored in your browser, and anonymous visit statistics (Google Analytics).",
+          "Messages you send through the contact or participant forms."
+        ]
+      },
+      {
+        "heading": "Why we use the data",
+        "items": [
+          "To manage memberships and rider accounts.",
+          "To register riders and horses for competitions and to prepare start lists and results.",
+          "To process payments and send receipts.",
+          "To contact you about your account, payments and competitions.",
+          "To improve the website and to meet legal obligations."
+        ]
+      },
+      {
+        "heading": "Legal basis",
+        "paragraphs": [
+          "We process data to provide the services you request (membership, competition entry), to comply with legal obligations, on the basis of the Federation’s legitimate interest in organising equestrian sport, and, for analytics, with your consent."
+        ]
+      },
+      {
+        "heading": "Who we share data with",
+        "items": [
+          "Flitt — payment processing.",
+          "Service providers that host the website, store images and send email on our behalf (for example Railway, Vercel, Cloudinary, Mailgun).",
+          "Google Analytics — anonymous visit statistics.",
+          "The public: rider name, horse name and competition results are published in start lists and results on the website."
+        ],
+        "paragraphs": [
+          "We do not sell personal data."
+        ]
+      },
+      {
+        "heading": "How long we keep data",
+        "paragraphs": [
+          "Account data is kept while the account is active. Payment records and competition results are kept for as long as required by law and for the Federation’s sporting records."
+        ]
+      },
+      {
+        "heading": "Your rights",
+        "paragraphs": [
+          "You may request access to, correction or deletion of your personal data, restriction of processing, or withdraw your consent, by writing to {{email}}. You may also contact the Personal Data Protection Service of Georgia."
+        ]
+      },
+      {
+        "heading": "Minors",
+        "paragraphs": [
+          "Riders under 18 may use the services with the consent of a parent or legal guardian, who may exercise the rights described above on the minor’s behalf."
+        ]
+      },
+      {
+        "heading": "Security",
+        "paragraphs": [
+          "Data is transmitted over an encrypted connection (HTTPS), and access to it is limited to authorised Federation staff and service providers."
+        ]
+      },
+      {
+        "heading": "Changes and contact",
+        "paragraphs": [
+          "We may update this policy; the current version and its effective date are published on this page. Contact: {{email}}, {{phone}}, {{address}}."
+        ]
+      }
+    ]
+  }
+}

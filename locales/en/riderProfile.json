@@ -77,7 +77,8 @@
     "pay": "Pay membership",
     "renew": "Renew membership",
     "enterAgeOrContact": "Enter your age or contact the federation.",
-    "redirecting": "Redirecting to bank…"
+    "redirecting": "Redirecting to bank…",
+    "nextPaymentFrom": "Membership is paid once a year. Next payment from {{date}}."
   },
   "horses": {
     "title": "My horses",
@@ -274,6 +275,8 @@
     "billingHighestTourFee": "highest tour fee",
     "receiptTitle": "Receipt",
     "receiptHint": "How much you paid for this event and what it covered.",
-    "paidTotal": "Paid total"
+    "paidTotal": "Paid total",
+    "registeredAllCovered": "Registered for {{count}} competition(s). No extra payment needed — this horse’s highest tour in this event is already paid and includes these competitions.",
+    "registeredSomeCovered": "{{count}} of them are already included in the horse’s paid highest tour — no extra payment for those."
   }
 }

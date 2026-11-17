@@ -36,6 +36,25 @@
   color: white;
 }
 
+.legalLinks {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  color: #888;
+}
+
+.legalLinks a {
+  color: #bbb;
+  text-decoration: underline;
+}
+
+.legalLinks a:hover {
+  color: white;
+}
+
 .icons {
   display: flex;
   gap: 0.5rem;

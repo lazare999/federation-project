@@ -25,10 +25,15 @@ export const getEvents = async () => {
   }
 };
 
-/** Full event detail — competitions, results, entries, images. */
-export const fetchEventById = async (id) => {
+/**
+ * Full event detail — competitions, results, entries, images.
+ * @param {string} [lang] — pin the Accept-Language (en|ka); defaults to the UI language.
+ */
+export const fetchEventById = async (id, lang) => {
   try {
-    const res = await axiosInstance.get(`events/${id}/`);
+    const res = await axiosInstance.get(`events/${id}/`, {
+      headers: lang ? { 'Accept-Language': lang } : undefined,
+    });
     if (!res.data) throw new Error('Event not found');
     return res.data;
   } catch (error) {

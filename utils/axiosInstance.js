@@ -1,16 +1,6 @@
 import { getApiOriginOrFallback } from '@/lib/api/api-base';
+import { currentApiLanguage } from '@/lib/i18n/apiLanguage';
 import axios from 'axios';
-
-function getAcceptLanguage() {
-  if (typeof window === 'undefined') return 'en';
-  try {
-    const stored = window.localStorage?.getItem('i18nextLng');
-    if (stored) return stored.slice(0, 2);
-  } catch {
-    /* ignore */
-  }
-  return 'en';
-}
 
 const axiosInstance = axios.create({
   baseURL: `${getApiOriginOrFallback()}/api/`,
@@ -18,7 +8,11 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use((config) => {
-  config.headers['Accept-Language'] = getAcceptLanguage();
+  // Callers may pin a language (e.g. prefetching the other language);
+  // otherwise use the language the UI is showing right now.
+  if (!config.headers['Accept-Language']) {
+    config.headers['Accept-Language'] = currentApiLanguage();
+  }
   return config;
 });
 

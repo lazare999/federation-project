@@ -40,6 +40,11 @@ export default function RootLayout({ children }) {
 
         <link rel="apple-touch-icon" href="/light-theme-icon.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* Stop iOS from turning phone numbers, dates and addresses into blue links. */}
+        <meta
+          name="format-detection"
+          content="telephone=no, date=no, email=no, address=no"
+        />
       </head>
 
       <body>

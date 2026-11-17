@@ -10,6 +10,26 @@
   margin-bottom: 2rem;
 }
 
+.details {
+  font-style: normal;
+  text-align: center;
+  font-size: 1.15rem;
+  line-height: 1.6;
+  margin: -1rem auto 2rem;
+}
+
+.details p {
+  margin: 0;
+}
+
+.details span {
+  color: #666;
+}
+
+.details a {
+  color: inherit;
+}
+
 @media (max-width: 480px) {
   .title {
     font-size: 2.5rem;

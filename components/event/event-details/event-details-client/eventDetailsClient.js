@@ -2,8 +2,9 @@
 
 import { fetchEventById } from '@/actions/event-actions/eventActions';
 import Loader from '@/components/loader/loader';
+import { otherApiLanguage } from '@/lib/i18n/apiLanguage';
 import classes from '@/styles/events/event-details/eventDetails.module.css';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -26,16 +27,19 @@ const EventPhotos = dynamic(
   { ssr: false, loading: () => <Loader /> }
 );
 
-const EventTimer = dynamic(
-  () => import('@/components/event/event-details/event-timer/eventTimer'),
-  { ssr: false }
-);
+function retryUnlessMissing(failureCount, err) {
+  const status = err?.status || err?.response?.status;
+  if (status === 404 || status === 400) return false;
+  return failureCount < 1;
+}
 
 export default function EventDetailsClient({ eventId }) {
   const { t, i18n } = useTranslation('events');
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('results');
   const [scrollToCompId, setScrollToCompId] = useState(null);
   const [mounted, setMounted] = useState(false);
+  const lang = (i18n.resolvedLanguage || i18n.language || 'en').slice(0, 2);
 
   useEffect(() => {
     setMounted(true);
@@ -46,15 +50,26 @@ export default function EventDetailsClient({ eventId }) {
     error,
     isLoading,
   } = useQuery({
-    queryKey: ['event', eventId, i18n.language],
-    queryFn: () => fetchEventById(eventId),
+    queryKey: ['event', eventId, lang],
+    queryFn: () => fetchEventById(eventId, lang),
     enabled: mounted && Boolean(eventId),
-    retry: (failureCount, err) => {
-      const status = err?.status || err?.response?.status;
-      if (status === 404 || status === 400) return false;
-      return failureCount < 1;
-    },
+    // While the other language loads, keep showing this event instead of a
+    // full-page loader (only for the same event).
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey?.[1] === eventId ? previous : undefined,
+    retry: retryUnlessMissing,
   });
+
+  // Load the other language in the background so switching is instant.
+  useEffect(() => {
+    if (!event || !eventId) return;
+    const other = otherApiLanguage(lang);
+    queryClient.prefetchQuery({
+      queryKey: ['event', eventId, other],
+      queryFn: () => fetchEventById(eventId, other),
+      retry: retryUnlessMissing,
+    });
+  }, [event, eventId, lang, queryClient]);
 
   useEffect(() => {
     if (activeTab !== 'photos') return;
@@ -88,11 +103,6 @@ export default function EventDetailsClient({ eventId }) {
   }
   if (!event) return <div>{t('details.notFound')}</div>;
 
-  const isUpcoming =
-    typeof event.is_upcoming === 'boolean'
-      ? event.is_upcoming
-      : new Date(event.date) > new Date();
-
   return (
     <div>
       <div className={classes.container}>
@@ -109,7 +119,7 @@ export default function EventDetailsClient({ eventId }) {
         </div>
       </div>
 
-      {isUpcoming && <EventTimer event={event} />}
+      {/* Registration is only available from the rider cabinet. */}
 
       <div className={classes.buttonsContainer}>
         <button

@@ -1,0 +1,111 @@
+.page {
+  background-color: #f2f2f2;
+  padding: 2rem 1rem 4rem;
+}
+
+.document {
+  max-width: 820px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 2.5rem 2.5rem 2rem;
+  line-height: 1.65;
+  color: #1a1a1a;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 0 0 0.25rem;
+}
+
+.updated {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0 0 1.5rem;
+}
+
+.intro {
+  margin: 0 0 1.5rem;
+}
+
+.entity {
+  background: #f7f7f7;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.entityTitle {
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem;
+}
+
+.entityList {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0;
+}
+
+.entityList dt {
+  color: #666;
+}
+
+.entityList dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.entityList a,
+.crossLink a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.heading {
+  font-size: 1.25rem;
+  margin: 0 0 0.5rem;
+}
+
+.paragraph {
+  margin: 0 0 0.75rem;
+}
+
+.list {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.list li {
+  margin-bottom: 0.35rem;
+}
+
+.crossLink {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+@media (max-width: 600px) {
+  .document {
+    padding: 1.5rem 1rem;
+  }
+
+  .title {
+    font-size: 1.9rem;
+  }
+
+  .entityList {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+
+  .entityList dd {
+    margin-bottom: 0.5rem;
+  }
+}

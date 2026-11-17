@@ -1,5 +1,7 @@
 .eventsSection {
   margin-top: 2rem;
+  /* Small gap above the card when scrolled to after registering. */
+  scroll-margin-top: 1rem;
 }
 
 .historyToggleRow {

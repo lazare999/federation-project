@@ -107,6 +107,27 @@ function formatEntryResult(entry, competition, t) {
   return parts.join(' · ');
 }
 
+const UPCOMING_EVENTS_ID = 'upcoming-events';
+const UPCOMING_SCROLL_GAP = 16;
+
+/**
+ * After registering, bring the rider back to the top of the Upcoming events
+ * card. The smooth scroll can be cancelled by the re-render that follows
+ * registration, so jump there if we did not arrive.
+ */
+function scrollToUpcomingEvents() {
+  const el = document.getElementById(UPCOMING_EVENTS_ID);
+  if (!el) return false;
+  const targetTop = () =>
+    el.getBoundingClientRect().top + window.scrollY - UPCOMING_SCROLL_GAP;
+  window.scrollTo({ top: targetTop(), behavior: 'smooth' });
+  window.setTimeout(() => {
+    const offset = el.getBoundingClientRect().top - UPCOMING_SCROLL_GAP;
+    if (Math.abs(offset) > 40) window.scrollTo({ top: targetTop() });
+  }, 900);
+  return true;
+}
+
 function formatApiError(err, t, fallbackKey = 'common.requestFailed') {
   if (!(err instanceof ApiRequestError)) {
     return t('common.connectionError');
@@ -1533,6 +1554,14 @@ function EventEntries({
                               {t('events.paid')}
                             </span>
                           )}
+                          {paid && entry.covered_by_highest_tour && (
+                            <span
+                              className={classes.coveredBadge}
+                              title={t('events.payCoveredHint')}
+                            >
+                              {t('events.includedInHighestTour')}
+                            </span>
+                          )}
                           {unpaid && covered && listFeeLabel && (
                             <>
                               <span
@@ -1923,14 +1952,13 @@ function UpcomingEventCard({
     event.unpaid_total != null &&
     event.unpaid_total !== '' &&
     String(event.charge_due) !== String(event.unpaid_total);
-  const pendingUrl = getEventPendingRedirect(event);
   const gate = resolveRegisterGate(
     event,
     canRegisterForEvents,
     registerBlockedReason,
     t
   );
-  // Pay all only on the card — not gated by registration_open / pendingUrl.
+  // Pay all only on the card — not gated by registration_open.
   const canPay = event.can_pay === true;
   const payBlockedReason = rewriteAgeBlockedReason(
     event.pay_blocked_reason || '',
@@ -2001,23 +2029,32 @@ function UpcomingEventCard({
       setRegistering(true);
       const result = await registerForEvent(event.id, entries);
       const due = formatMoney(result?.total_due, result?.currency || 'GEL');
-      setRegisterSuccess(
-        result?.registered
-          ? t('events.registeredFor', {
-              count: result.registered,
-              due: due ? t('events.dueSuffix', { amount: due }) : '',
-            })
-          : t('events.registrationCreated')
-      );
+      const coveredCount = Array.isArray(result?.covered_entry_ids)
+        ? result.covered_entry_ids.length
+        : 0;
+      let message;
+      if (result?.registered && coveredCount === result.registered) {
+        // Every new entry is included in the horse's already-paid higher tour.
+        message = t('events.registeredAllCovered', { count: coveredCount });
+      } else if (result?.registered) {
+        message = t('events.registeredFor', {
+          count: result.registered,
+          due: due ? t('events.dueSuffix', { amount: due }) : '',
+        });
+        if (coveredCount > 0) {
+          message += ` ${t('events.registeredSomeCovered', { count: coveredCount })}`;
+        }
+      } else {
+        message = t('events.registrationCreated');
+      }
+      setRegisterSuccess(message);
       setSelections({});
       scrollToPayAfterRegister.current = true;
       await onRegistered();
       window.setTimeout(() => {
         if (!scrollToPayAfterRegister.current) return;
-        const payEl = document.getElementById(`event-pay-${event.id}`);
-        if (!payEl) return;
+        if (!scrollToUpcomingEvents()) return;
         scrollToPayAfterRegister.current = false;
-        payEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 200);
     } catch (err) {
       scrollToPayAfterRegister.current = false;
@@ -2036,10 +2073,8 @@ function UpcomingEventCard({
     if (!scrollToPayAfterRegister.current || !hasUnpaid) return;
     const timer = window.setTimeout(() => {
       if (!scrollToPayAfterRegister.current) return;
-      const payEl = document.getElementById(`event-pay-${event.id}`);
-      if (!payEl) return;
+      if (!scrollToUpcomingEvents()) return;
       scrollToPayAfterRegister.current = false;
-      payEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 120);
     return () => window.clearTimeout(timer);
   }, [event.id, hasUnpaid, billing, event.has_unpaid_entries]);
@@ -2293,45 +2328,31 @@ function UpcomingEventCard({
               </div>
             </div>
 
-            {payBlockedReason && !canPay && !pendingUrl && (
+            {payBlockedReason && !canPay && (
               <p className={classes.competitionHint}>{payBlockedReason}</p>
             )}
 
             {payError && <p className={classes.error}>{payError}</p>}
 
-            {(pendingUrl || canPay) && (
+            {/* An abandoned checkout (rider pressed Back) is not shown: Pay
+                always starts the requested payment; the backend reuses or
+                replaces the old checkout. */}
+            {canPay && (
               <div className={classes.eventPayRow}>
-                {pendingUrl ? (
-                  <button
-                    type="button"
-                    className={classes.payBtn}
-                    onClick={() => redirectToBank(pendingUrl)}
-                    disabled={paying}
-                  >
-                    {paying
-                      ? t('events.redirecting')
-                      : chargeDue || unpaidTotal
-                        ? t('events.payAllAmount', {
-                            amount: chargeDue || unpaidTotal,
-                          })
-                        : t('events.continuePayment')}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className={classes.payBtn}
-                    onClick={() => void handlePay({ payAll: true })}
-                    disabled={paying}
-                  >
-                    {paying && payingEntryId === 'all'
-                      ? t('events.redirecting')
-                      : chargeDue || unpaidTotal
-                        ? t('events.payAllAmount', {
-                            amount: chargeDue || unpaidTotal,
-                          })
-                        : t('events.payAll')}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className={classes.payBtn}
+                  onClick={() => void handlePay({ payAll: true })}
+                  disabled={paying}
+                >
+                  {paying && payingEntryId === 'all'
+                    ? t('events.redirecting')
+                    : chargeDue || unpaidTotal
+                      ? t('events.payAllAmount', {
+                          amount: chargeDue || unpaidTotal,
+                        })
+                      : t('events.payAll')}
+                </button>
               </div>
             )}
           </div>
@@ -2577,6 +2598,13 @@ function MyEventsProviderContent({ children }) {
             clearPaymentQuery();
             return;
           }
+          // Checkout resolved but other entries are still unpaid (partial
+          // payment) — stop polling; the cards show the updated statuses.
+          if (!match.pending_payment) {
+            setPaymentMessage('');
+            clearPaymentQuery();
+            return;
+          }
         } catch {
           /* keep polling */
         }
@@ -2603,6 +2631,36 @@ function MyEventsProviderContent({ children }) {
     };
 
     run();
+  }, [loadEvents]);
+
+  // Competition / event names are translated by the API — reload them in the
+  // new language when the rider switches language (keeps the current list
+  // on screen until the new one arrives).
+  const { i18n } = useTranslation();
+  const apiLang = (i18n.resolvedLanguage || i18n.language || 'en').slice(0, 2);
+  const loadedLang = useRef(apiLang);
+  useEffect(() => {
+    if (loadedLang.current === apiLang) return;
+    loadedLang.current = apiLang;
+    loadEvents().catch(() => {});
+  }, [apiLang, loadEvents]);
+
+  // Membership paid in the block above — refresh registration eligibility.
+  // Also refresh when the rider comes back from checkout with the browser
+  // Back button (page restored from the back/forward cache).
+  useEffect(() => {
+    const refresh = () => {
+      loadEvents().catch(() => {});
+    };
+    const onPageShow = (e) => {
+      if (e.persisted) refresh();
+    };
+    window.addEventListener('rider:membership-updated', refresh);
+    window.addEventListener('pageshow', onPageShow);
+    return () => {
+      window.removeEventListener('rider:membership-updated', refresh);
+      window.removeEventListener('pageshow', onPageShow);
+    };
   }, [loadEvents]);
 
   useEffect(() => {
@@ -2692,7 +2750,7 @@ export function UpcomingEventsSection() {
   }
 
   return (
-    <section className={classes.eventsSection}>
+    <section id={UPCOMING_EVENTS_ID} className={classes.eventsSection}>
       {paymentMessage && (
         <p className={classes.success}>
           {paymentMessage === 'processing' ||

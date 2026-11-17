@@ -20,5 +20,13 @@ export default function sitemap() {
       url: 'https://georgianequestrianfederation.ge/contact',
       lastModified: new Date(),
     },
+    {
+      url: 'https://georgianequestrianfederation.ge/terms',
+      lastModified: new Date(),
+    },
+    {
+      url: 'https://georgianequestrianfederation.ge/privacy',
+      lastModified: new Date(),
+    },
   ];
 }
