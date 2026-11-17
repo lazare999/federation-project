@@ -78,7 +78,7 @@
     "renew": "Renew membership",
     "enterAgeOrContact": "Enter your age or contact the federation.",
     "redirecting": "Redirecting to bank…",
-    "nextPaymentFrom": "Membership is paid once a year. Next payment from {{date}}."
+    "nextPaymentFrom": "Membership is valid until 31 December of the year it is paid. Next payment from {{date}}."
   },
   "horses": {
     "title": "My horses",
