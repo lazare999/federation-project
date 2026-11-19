@@ -184,8 +184,7 @@
       "bronze": "Bronze",
       "silver": "Silver",
       "gold": "Gold"
-    },
-    "requestId": "Request ID: #{{id}}"
+    }
   },
   "events": {
     "upcoming": "Upcoming events",

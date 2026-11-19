@@ -193,17 +193,24 @@ function horseCardKey(horse, index) {
   return `pending-${horse.name ?? 'horse'}-${index}`;
 }
 
-function ProfileStatusBadge({ status }) {
+function ProfileStatusBadge({ status, requestId }) {
   const { t } = useTranslation('riderProfile');
+  // Request ID inside the badge ("Pending #18") — the same number the
+  // federation sees in admin (Horse claim requests).
+  const idSuffix = requestId != null ? ` #${requestId}` : '';
   if (status === 'pending_add') {
     return (
-      <span className={classes.statusBadgePendingAdd}>{t('horses.pending')}</span>
+      <span className={classes.statusBadgePendingAdd}>
+        {t('horses.pending')}
+        {idSuffix}
+      </span>
     );
   }
   if (status === 'pending_removal') {
     return (
       <span className={classes.statusBadgePendingRemoval}>
         {t('horses.removalPending')}
+        {idSuffix}
       </span>
     );
   }
@@ -238,18 +245,10 @@ function HorseCard({ horse, onRemove, removing, showInfo, onToggleInfo }) {
       )}
       <div className={classes.horseNameRow}>
         <h3 className={classes.horseName}>{capitalizeName(horse.name) || '—'}</h3>
-        <span className={classes.statusGroup}>
-          {profileStatus !== 'active' && horse.claim_request_id != null && (
-            // Same number the federation sees in admin (Horse claim requests).
-            <span
-              className={classes.requestIdNote}
-              title={t('horses.requestId', { id: horse.claim_request_id })}
-            >
-              #{horse.claim_request_id}
-            </span>
-          )}
-          <ProfileStatusBadge status={profileStatus} />
-        </span>
+        <ProfileStatusBadge
+          status={profileStatus}
+          requestId={horse.claim_request_id}
+        />
       </div>
       {showInfo && (
         <div className={classes.horseMeta}>
