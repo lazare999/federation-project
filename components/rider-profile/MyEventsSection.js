@@ -30,7 +30,6 @@ import { formatDisplayDate } from '@/lib/utils/formatDisplayDate';
 import { rewriteAgeBlockedReason } from '@/lib/utils/rewriteAgeBlockedReason';
 import {
   formatFaults,
-  formatJumpoff,
   formatPlaceOrStatus,
   formatPoints,
   formatResultTime,
@@ -88,11 +87,13 @@ function formatEntryResult(entry, competition, t) {
   }
   if (
     columns.jumpoff &&
-    (result.jumpoffFaults != null || result.jumpoffTime != null)
+    (result.jumpoff || result.jumpoffFaults != null)
   ) {
+    // Label jump-off faults and time separately instead of "4 / 38.21 s".
     parts.push(
-      t('events.jumpoff', {
-        value: formatJumpoff(result, secondsLabel),
+      t('events.jumpoffDetail', {
+        faults: formatFaults(result.jumpoffFaults),
+        time: formatResultTime(result.jumpoffTime, secondsLabel),
       })
     );
   }

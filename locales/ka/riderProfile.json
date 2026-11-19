@@ -284,6 +284,7 @@
     "daysLeft_other": "დღე დარჩა",
     "daysLeftAria_one": "სტარტამდე დარჩა {{count}} დღე",
     "daysLeftAria_other": "სტარტამდე დარჩა {{count}} დღე",
-    "today": "დღეს"
+    "today": "დღეს",
+    "jumpoffDetail": "Jump-off: შეცდომები {{faults}}, დრო {{time}}"
   }
 }

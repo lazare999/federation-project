@@ -85,6 +85,25 @@
   font-weight: bold;
 }
 
+/* Jump-off columns: small "Jump-off" over "Faults" / "Time". */
+.jumpoffHead {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.jumpoffLabel {
+  font-size: 0.7em;
+  font-weight: 600;
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.jumpoffCell {
+  font-variant-numeric: tabular-nums;
+}
+
 @media (max-width: 480px) {
   .title {
     font-size: 1.5rem;

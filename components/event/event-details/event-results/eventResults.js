@@ -35,7 +35,18 @@ function ResultTable({ competition, t }) {
           <div>{t('results.place')}</div>
           {columns.faults && <div>{t('results.faults')}</div>}
           {columns.time && <div>{t('results.time')}</div>}
-          {columns.jumpoff && <div>{t('results.jumpoff')}</div>}
+          {columns.jumpoff && (
+            <>
+              <div className={classes.jumpoffHead}>
+                <span className={classes.jumpoffLabel}>{t('results.jumpoff')}</span>
+                {t('results.faults')}
+              </div>
+              <div className={classes.jumpoffHead}>
+                <span className={classes.jumpoffLabel}>{t('results.jumpoff')}</span>
+                {t('results.time')}
+              </div>
+            </>
+          )}
           {columns.points && <div>{t('results.points')}</div>}
         </div>
 
@@ -78,7 +89,14 @@ function ResultTable({ competition, t }) {
                 <div>{resultCell(result, 'time', secondsLabel)}</div>
               )}
               {columns.jumpoff && (
-                <div>{resultCell(result, 'jumpoff', secondsLabel)}</div>
+                <>
+                  <div className={classes.jumpoffCell}>
+                    {resultCell(result, 'jumpoffFaults', secondsLabel)}
+                  </div>
+                  <div className={classes.jumpoffCell}>
+                    {resultCell(result, 'jumpoffTime', secondsLabel)}
+                  </div>
+                </>
               )}
               {columns.points && (
                 <div>{resultCell(result, 'points', secondsLabel)}</div>

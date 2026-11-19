@@ -284,6 +284,7 @@
     "daysLeft_other": "days left",
     "daysLeftAria_one": "{{count}} day left until the start",
     "daysLeftAria_other": "{{count}} days left until the start",
-    "today": "Today"
+    "today": "Today",
+    "jumpoffDetail": "Jump-off: faults {{faults}}, time {{time}}"
   }
 }
