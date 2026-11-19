@@ -107,6 +107,38 @@ function formatEntryResult(entry, competition, t) {
   return parts.join(' · ');
 }
 
+/** Whole days from today (local) until the event's start date. */
+function daysUntil(dateValue) {
+  if (!dateValue) return null;
+  const [y, m, d] = String(dateValue).slice(0, 10).split('-').map(Number);
+  if (!y || !m || !d) return null;
+  const start = new Date(y, m - 1, d);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((start - today) / 86400000);
+}
+
+/** Days left until the event starts — shown beside the cover image. */
+function DaysLeft({ date }) {
+  const { t } = useTranslation('riderProfile');
+  const days = daysUntil(date);
+  if (days == null || days < 0) return null;
+  return (
+    <div className={classes.daysLeft} aria-label={t('events.daysLeftAria', { count: days })}>
+      {days === 0 ? (
+        <span className={classes.daysLeftToday}>{t('events.today')}</span>
+      ) : (
+        <>
+          <span className={classes.daysLeftNumber}>{days}</span>
+          <span className={classes.daysLeftLabel}>
+            {t('events.daysLeft', { count: days })}
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
+
 const UPCOMING_EVENTS_ID = 'upcoming-events';
 const UPCOMING_SCROLL_GAP = 16;
 
@@ -2186,9 +2218,12 @@ function UpcomingEventCard({
             </p>
           )}
         </div>
-        {hasCover ? (
-          <img src={event.cover_image} alt="" className={classes.cover} />
-        ) : null}
+        <div className={classes.eventTopAside}>
+          <DaysLeft date={event.date} />
+          {hasCover ? (
+            <img src={event.cover_image} alt="" className={classes.cover} />
+          ) : null}
+        </div>
       </div>
 
       <div className={classes.eventBody}>

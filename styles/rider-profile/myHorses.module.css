@@ -82,10 +82,15 @@
   gap: 0.4rem;
 }
 
+.statusGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .requestIdNote {
-  margin: 0.25rem 0 0;
-  font-size: 0.8rem;
-  color: #666;
+  font-size: 0.75rem;
+  color: #777;
   font-variant-numeric: tabular-nums;
 }
 

@@ -280,6 +280,11 @@
     "paidTotal": "Paid total",
     "registeredAllCovered": "Registered for {{count}} competition(s). No extra payment needed — this horse’s highest tour in this event is already paid and includes these competitions.",
     "registeredSomeCovered": "{{count}} of them are already included in the horse’s paid highest tour — no extra payment for those.",
-    "remainingAmount": "Remaining {{amount}}"
+    "remainingAmount": "Remaining {{amount}}",
+    "daysLeft_one": "day left",
+    "daysLeft_other": "days left",
+    "daysLeftAria_one": "{{count}} day left until the start",
+    "daysLeftAria_other": "{{count}} days left until the start",
+    "today": "Today"
   }
 }

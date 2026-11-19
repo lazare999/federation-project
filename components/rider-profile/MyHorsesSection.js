@@ -238,14 +238,19 @@ function HorseCard({ horse, onRemove, removing, showInfo, onToggleInfo }) {
       )}
       <div className={classes.horseNameRow}>
         <h3 className={classes.horseName}>{capitalizeName(horse.name) || '—'}</h3>
-        <ProfileStatusBadge status={profileStatus} />
+        <span className={classes.statusGroup}>
+          {profileStatus !== 'active' && horse.claim_request_id != null && (
+            // Same number the federation sees in admin (Horse claim requests).
+            <span
+              className={classes.requestIdNote}
+              title={t('horses.requestId', { id: horse.claim_request_id })}
+            >
+              #{horse.claim_request_id}
+            </span>
+          )}
+          <ProfileStatusBadge status={profileStatus} />
+        </span>
       </div>
-      {profileStatus !== 'active' && horse.claim_request_id != null && (
-        // Same number the federation sees in admin (Horse claim requests).
-        <p className={classes.requestIdNote}>
-          {t('horses.requestId', { id: horse.claim_request_id })}
-        </p>
-      )}
       {showInfo && (
         <div className={classes.horseMeta}>
           <div className={classes.horseMetaRow}>
@@ -869,7 +874,8 @@ function HorseRequestComposer({ onSubmitted, onCancel, ownedHorses = [] }) {
                       value={form.color}
                       onChange={(e) => handleChange('color', e.target.value)}
                     >
-                      {HORSE_COLORS.map((opt) => (
+                      {/* White is not offered for new horse requests. */}
+                      {HORSE_COLORS.filter((opt) => opt.value !== 'white').map((opt) => (
                         <option key={opt.value} value={opt.value}>
                           {t(`horses.colors.${opt.value}`, {
                             defaultValue: opt.label,

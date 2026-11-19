@@ -280,6 +280,11 @@
     "paidTotal": "გადახდილი ჯამი",
     "registeredAllCovered": "დარეგისტრირდით {{count}} შეჯიბრზე. დამატებითი გადახდა საჭირო არ არის — ამ ცხენს ამ ღონისძიებაზე უმაღლესი ტური უკვე გადახდილი აქვს და ეს შეჯიბრებიც მასში შედის.",
     "registeredSomeCovered": "მათგან {{count}} უკვე შედის ცხენის გადახდილ უმაღლეს ტურში — მათზე დამატებით არაფერს იხდით.",
-    "remainingAmount": "დარჩენილი {{amount}}"
+    "remainingAmount": "დარჩენილი {{amount}}",
+    "daysLeft_one": "დღე დარჩა",
+    "daysLeft_other": "დღე დარჩა",
+    "daysLeftAria_one": "სტარტამდე დარჩა {{count}} დღე",
+    "daysLeftAria_other": "სტარტამდე დარჩა {{count}} დღე",
+    "today": "დღეს"
   }
 }
