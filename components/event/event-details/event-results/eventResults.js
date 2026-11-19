@@ -48,6 +48,7 @@ function ResultTable({ competition, t }) {
             </>
           )}
           {columns.points && <div>{t('results.points')}</div>}
+          {columns.joker && <div>{t('results.joker')}</div>}
         </div>
 
         {results.map((raw, index) => {
@@ -100,6 +101,11 @@ function ResultTable({ competition, t }) {
               )}
               {columns.points && (
                 <div>{resultCell(result, 'points', secondsLabel)}</div>
+              )}
+              {columns.joker && (
+                <div className={classes.jumpoffCell}>
+                  {resultCell(result, 'joker', secondsLabel)}
+                </div>
               )}
             </div>
           );

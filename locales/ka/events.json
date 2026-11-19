@@ -24,7 +24,8 @@
     "time": "დრო",
     "jumpoff": "Jump-off",
     "points": "ქულა",
-    "secondsShort": "წმ"
+    "secondsShort": "წმ",
+    "joker": "ჯოკერი"
   },
   "photos": {
     "noPhotosMessage": "ამ ღონისძიებისთვის ფოტოები არ არის ხელმისაწვდომი."

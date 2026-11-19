@@ -30,8 +30,8 @@ import { formatDisplayDate } from '@/lib/utils/formatDisplayDate';
 import { rewriteAgeBlockedReason } from '@/lib/utils/rewriteAgeBlockedReason';
 import {
   formatFaults,
+  formatJokerCell,
   formatPlaceOrStatus,
-  formatPoints,
   formatResultTime,
   getVisibleResultColumns,
   hasRecordedResult,
@@ -97,11 +97,13 @@ function formatEntryResult(entry, competition, t) {
       })
     );
   }
-  if (columns.points) {
-    const points = formatPoints(result);
-    if (points !== '—') {
-      parts.push(t('events.points', { value: points }));
-    }
+  if (columns.points && result.points != null) {
+    parts.push(t('events.points', { value: String(result.points) }));
+  }
+  // Joker separately ("Joker: +20"); no joker ridden → nothing shown.
+  const joker = formatJokerCell(result);
+  if (columns.joker && joker !== '—') {
+    parts.push(t('events.joker', { value: joker }));
   }
   if (result.notes) parts.push(result.notes);
 

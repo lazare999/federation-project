@@ -24,7 +24,8 @@
     "time": "Time",
     "jumpoff": "Jump-off",
     "points": "Points",
-    "secondsShort": "s"
+    "secondsShort": "s",
+    "joker": "Joker"
   },
   "photos": {
     "noPhotosMessage": "No photos available for this event."
