@@ -1415,11 +1415,12 @@ function EventEntries({
             .map((e) => resolveCompetitionHeight(e, competition))
             .find(Boolean) ||
           null;
-        const feeLabel = resolveEntryFeeLabel(
-          group.entries.find((e) => isEntryUnpaid(e)) || group.entries[0],
-          competition,
-          unpaidCurrency,
-          billing
+        // Header always shows the competition's own price (list fee), not the
+        // remaining amount after a lower tour was already paid.
+        const headerEntry = group.entries[0];
+        const feeLabel = formatMoney(
+          resolveEntryListFeeAmount(headerEntry, competition, billing),
+          resolveEntryListCurrency(headerEntry, competition, unpaidCurrency)
         );
         const tourLabel =
           details.tour ||
@@ -1503,12 +1504,18 @@ function EventEntries({
                   resolveEntryListFeeAmount(entry, competition, billing),
                   unpaidCurrency
                 );
-                const entryFeeLabel = resolveEntryFeeLabel(
+                const dueFeeLabel = resolveEntryFeeLabel(
                   entry,
                   competition,
                   unpaidCurrency,
                   billing
                 );
+                // When part of the price is already paid (lower tour), say the
+                // amount is what remains rather than a different price.
+                const entryFeeLabel =
+                  dueFeeLabel && listFeeLabel && dueFeeLabel !== listFeeLabel
+                    ? t('events.remainingAmount', { amount: dueFeeLabel })
+                    : dueFeeLabel;
                 const isPayingThis =
                   payingEntryId != null &&
                   ((payTarget?.horseId != null &&
@@ -1595,7 +1602,7 @@ function EventEntries({
                         canPay={canPayEntry && !covered}
                         onPay={onPayEntry}
                         paying={isPayingThis}
-                        feeLabel={entryFeeLabel}
+                        feeLabel={dueFeeLabel}
                         payHorseId={covered ? null : payTarget?.horseId ?? null}
                         payEntryId={covered ? null : payTarget?.entryId ?? null}
                         paymentCovered={covered}

@@ -82,6 +82,13 @@
   gap: 0.4rem;
 }
 
+.requestIdNote {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: #666;
+  font-variant-numeric: tabular-nums;
+}
+
 .horseCardPending {
   border-color: #f0d9a8;
   background: #fffdf8;

@@ -184,7 +184,8 @@
       "bronze": "Bronze",
       "silver": "Silver",
       "gold": "Gold"
-    }
+    },
+    "requestId": "Request ID: #{{id}}"
   },
   "events": {
     "upcoming": "Upcoming events",
@@ -278,6 +279,7 @@
     "receiptHint": "How much you paid for this event and what it covered.",
     "paidTotal": "Paid total",
     "registeredAllCovered": "Registered for {{count}} competition(s). No extra payment needed — this horse’s highest tour in this event is already paid and includes these competitions.",
-    "registeredSomeCovered": "{{count}} of them are already included in the horse’s paid highest tour — no extra payment for those."
+    "registeredSomeCovered": "{{count}} of them are already included in the horse’s paid highest tour — no extra payment for those.",
+    "remainingAmount": "Remaining {{amount}}"
   }
 }

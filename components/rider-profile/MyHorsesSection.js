@@ -240,6 +240,12 @@ function HorseCard({ horse, onRemove, removing, showInfo, onToggleInfo }) {
         <h3 className={classes.horseName}>{capitalizeName(horse.name) || '—'}</h3>
         <ProfileStatusBadge status={profileStatus} />
       </div>
+      {profileStatus !== 'active' && horse.claim_request_id != null && (
+        // Same number the federation sees in admin (Horse claim requests).
+        <p className={classes.requestIdNote}>
+          {t('horses.requestId', { id: horse.claim_request_id })}
+        </p>
+      )}
       {showInfo && (
         <div className={classes.horseMeta}>
           <div className={classes.horseMetaRow}>
@@ -372,7 +378,7 @@ function CatalogHorseRow({ horse, selected, alreadyOwned, onAdd, t }) {
       </div>
       <button
         type="button"
-        className={classes.secondaryBtn}
+        className={classes.primaryBtn}
         disabled={disabled}
         onClick={() => onAdd(horse)}
       >
@@ -1052,7 +1058,7 @@ function HorseRequestComposer({ onSubmitted, onCancel, ownedHorses = [] }) {
             <div className={classes.formActions}>
               <button
                 type="submit"
-                className={classes.secondaryBtn}
+                className={classes.primaryBtn}
                 disabled={passportChecking || passportTakenHorses.length > 0}
               >
                 {t('horses.addToRequest')}
