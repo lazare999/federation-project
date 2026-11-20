@@ -2,13 +2,12 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { ApiRequestError, extractApiErrorMessage } from '@/lib/api/api-error';
 import { completeSignup, validateSignupInvite } from '@/lib/api/auth';
 import { capitalizeName } from '@/lib/utils/capitalizeName';
 import classes from '@/styles/auth/auth.module.css';
-
-const PASSWORD_HINT = 'მინიმუმ 8 სიმბოლო, ასო და ციფრი';
 
 function collectPasswordIssues(password) {
   const issues = [];
@@ -129,6 +128,7 @@ function formatSignupApiError(err) {
 
 export default function SignupInviteForm({ token }) {
   const router = useRouter();
+  const { t } = useTranslation('auth');
 
   const [loading, setLoading] = useState(true);
   const [riderName, setRiderName] = useState('');
@@ -152,12 +152,9 @@ export default function SignupInviteForm({ token }) {
       } catch (e) {
         const status = e?.status;
 
-        if (status === 410) setSubmitError('ლინკს ვადა გაუვიდა');
-        else if (status === 409)
-          setSubmitError(
-            'ეს მოწვევა უკვე გამოყენებულია ან ანგარიში უკვე არსებობს. გადადით შესვლაზე.'
-          );
-        else setSubmitError('არასწორი ლინკი');
+        if (status === 410) setSubmitError(t('signup.linkExpired'));
+        else if (status === 409) setSubmitError(t('signup.alreadyUsed'));
+        else setSubmitError(t('signup.invalidLink'));
       } finally {
         setLoading(false);
       }
@@ -173,7 +170,7 @@ export default function SignupInviteForm({ token }) {
     setSuccessMessage('');
 
     if (password !== confirm) {
-      setSubmitError('პაროლები არ ემთხვევა');
+      setSubmitError(t('signup.passwordsMismatch'));
       return;
     }
 
@@ -193,9 +190,7 @@ export default function SignupInviteForm({ token }) {
         password,
       });
 
-      setSuccessMessage(
-        'ანგარიში წარმატებით შექმნილია. გადამისამართება შესვლის გვერდზე...'
-      );
+      setSuccessMessage(t('signup.success'));
 
       setTimeout(() => {
         router.push('/login?registered=1');
@@ -205,16 +200,14 @@ export default function SignupInviteForm({ token }) {
         const status = e.status;
 
         if (status === 409) {
-          setSubmitError(
-            'ეს მოწვევა უკვე გამოყენებულია ან ანგარიში უკვე არსებობს. გადადით შესვლაზე.'
-          );
+          setSubmitError(t('signup.alreadyUsed'));
         } else if (status === 404 || status === 410) {
-          setSubmitError('მოწვევა არასწორია ან ვადა გაუვიდა');
+          setSubmitError(t('signup.invalidOrExpired'));
         } else {
           setSubmitError(formatSignupApiError(e));
         }
       } else {
-        setSubmitError('სერვერთან კავშირი ვერ დამყარდა. სცადეთ ხელახლა.');
+        setSubmitError(t('signup.connectionError'));
       }
     } finally {
       setSubmitLoading(false);
@@ -224,7 +217,7 @@ export default function SignupInviteForm({ token }) {
   if (loading) {
     return (
       <div className={classes.page}>
-        <p className={classes.loading}>იტვირთება...</p>
+        <p className={classes.loading}>{t('signup.loading')}</p>
       </div>
     );
   }
@@ -233,7 +226,7 @@ export default function SignupInviteForm({ token }) {
     return (
       <div className={classes.page}>
         <div className={classes.shell}>
-          <h1 className={classes.errorBoxTitle}>შეცდომა</h1>
+          <h1 className={classes.errorBoxTitle}>{t('signup.errorTitle')}</h1>
           <p className={classes.errorBox}>{submitError}</p>
         </div>
       </div>
@@ -243,9 +236,9 @@ export default function SignupInviteForm({ token }) {
   return (
     <div className={classes.page}>
       <div className={classes.shell}>
-        <h1 className={classes.title}>რეგისტრაცია</h1>
+        <h1 className={classes.title}>{t('signup.title')}</h1>
         <p className={classes.subtitle}>
-          როგორც: <strong>{capitalizeName(riderName)}</strong>
+          {t('signup.as')} <strong>{capitalizeName(riderName)}</strong>
         </p>
 
         {successMessage && (
@@ -254,10 +247,10 @@ export default function SignupInviteForm({ token }) {
 
         <form onSubmit={handleSubmit} className={classes.form}>
           <div className={classes.formField}>
-            <label htmlFor="signup-email">ელ. ფოსტა</label>
+            <label htmlFor="signup-email">{t('signup.email')}</label>
             <input
               id="signup-email"
-              placeholder="ელ. ფოსტა"
+              placeholder={t('signup.email')}
               type="email"
               autoComplete="email"
               value={email}
@@ -267,10 +260,10 @@ export default function SignupInviteForm({ token }) {
           </div>
 
           <div className={classes.formField}>
-            <label htmlFor="signup-phone">ტელეფონი</label>
+            <label htmlFor="signup-phone">{t('signup.phone')}</label>
             <input
               id="signup-phone"
-              placeholder="ტელეფონი"
+              placeholder={t('signup.phone')}
               type="tel"
               autoComplete="tel"
               value={phone}
@@ -279,25 +272,25 @@ export default function SignupInviteForm({ token }) {
           </div>
 
           <div className={classes.formField}>
-            <label htmlFor="signup-password">პაროლი</label>
+            <label htmlFor="signup-password">{t('signup.password')}</label>
             <input
               id="signup-password"
               type="password"
-              placeholder="პაროლი"
+              placeholder={t('signup.password')}
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <p className={classes.fieldHint}>{PASSWORD_HINT}</p>
+            <p className={classes.fieldHint}>{t('signup.passwordHint')}</p>
           </div>
 
           <div className={classes.formField}>
-            <label htmlFor="signup-confirm">პაროლის დადასტურება</label>
+            <label htmlFor="signup-confirm">{t('signup.confirm')}</label>
             <input
               id="signup-confirm"
               type="password"
-              placeholder="პაროლის დადასტურება"
+              placeholder={t('signup.confirm')}
               autoComplete="new-password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
@@ -312,7 +305,7 @@ export default function SignupInviteForm({ token }) {
             disabled={submitLoading}
             className={classes.primaryBtn}
           >
-            {submitLoading ? 'რეგისტრაცია...' : 'რეგისტრაცია'}
+            {submitLoading ? t('signup.submitting') : t('signup.submit')}
           </button>
         </form>
       </div>

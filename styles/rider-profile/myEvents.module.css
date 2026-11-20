@@ -109,8 +109,9 @@
   align-items: start;
 }
 
+/* No cover image: the days-left counter still sits top-right. */
 .eventCardNoImage .eventTop {
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr auto;
 }
 
 .eventIntro {
