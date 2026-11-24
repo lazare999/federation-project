@@ -252,6 +252,7 @@
     "register": "Register",
     "registering": "Registering…",
     "registrationCreated": "Registration created. You will appear on the start list only after payment. Pay the entry from your cabinet (once per horse — highest tour fee).",
+    "registeredOnStartList": "Registered for {{count}} competition(s). You are on the start list.",
     "registeredFor": "Registered for {{count}} competition(s){{due}}. You will appear on the start list only after payment. Pay the entry from your cabinet (once per horse — highest tour fee).",
     "dueSuffix": " · due {{amount}}",
     "registrationFailed": "Registration failed",

@@ -570,6 +570,11 @@ function isEntryPaid(entry) {
   return entry?.payment_status === 'paid' || entry?.is_paid === true;
 }
 
+/** Registered while the rider is exempt from entry fees: nothing was paid. */
+function isEntryFree(entry) {
+  return entry?.fee_waived === true;
+}
+
 function findCompetitionForEntry(competitions, entry) {
   const list = competitions ?? [];
   if (entry.competition_id != null) {
@@ -931,7 +936,8 @@ function EntryManageActions({
 
   const canStartPay = payHorseId != null || payEntryId != null;
   if (!entry?.entry_id && !canStartPay && !paymentCovered) return null;
-  if (!isEntryUnpaid(entry) && !canStartPay && !paymentCovered) return null;
+  if (!isEntryUnpaid(entry) && !isEntryFree(entry) && !canStartPay && !paymentCovered)
+    return null;
 
   const locked = entryHasResults(entry);
   const registrationOpen = isCompetitionRegistrationOpen(competition);
@@ -1453,10 +1459,16 @@ function EventEntries({
         // Header always shows the competition's own price (list fee), not the
         // remaining amount after a lower tour was already paid.
         const headerEntry = group.entries[0];
-        const feeLabel = formatMoney(
-          resolveEntryListFeeAmount(headerEntry, competition, billing),
-          resolveEntryListCurrency(headerEntry, competition, unpaidCurrency)
-        );
+        // Fee-exempt entries are stored at 0; show the competition's usual price.
+        const feeLabel = group.entries.every(isEntryFree)
+          ? formatMoney(
+              competition?.entry_fee ?? null,
+              competition?.entry_fee_currency || unpaidCurrency
+            )
+          : formatMoney(
+              resolveEntryListFeeAmount(headerEntry, competition, billing),
+              resolveEntryListCurrency(headerEntry, competition, unpaidCurrency)
+            );
         const tourLabel =
           details.tour ||
           getHorseLevelLabel(
@@ -1516,7 +1528,8 @@ function EventEntries({
             <div className={classes.registeredHorseList}>
               {group.entries.map((entry, index) => {
                 const unpaid = isEntryUnpaid(entry);
-                const paid = isEntryPaid(entry);
+                const free = isEntryFree(entry);
+                const paid = isEntryPaid(entry) && !free;
                 const result = showResults
                   ? formatEntryResult(entry, competition, t)
                   : null;
@@ -1628,19 +1641,19 @@ function EventEntries({
                       </div>
                     </div>
 
-                    {manageable && unpaid && (
+                    {manageable && (unpaid || free) && (
                       <EntryManageActions
                         eventId={eventId}
                         entry={entry}
                         competition={competition}
                         onUpdated={onUpdated}
-                        canPay={canPayEntry && !covered}
+                        canPay={canPayEntry && !covered && !free}
                         onPay={onPayEntry}
                         paying={isPayingThis}
                         feeLabel={dueFeeLabel}
-                        payHorseId={covered ? null : payTarget?.horseId ?? null}
-                        payEntryId={covered ? null : payTarget?.entryId ?? null}
-                        paymentCovered={covered}
+                        payHorseId={covered || free ? null : payTarget?.horseId ?? null}
+                        payEntryId={covered || free ? null : payTarget?.entryId ?? null}
+                        paymentCovered={covered && !free}
                         coveredFeeLabel={listFeeLabel}
                       />
                     )}
@@ -2075,7 +2088,10 @@ function UpcomingEventCard({
         ? result.covered_entry_ids.length
         : 0;
       let message;
-      if (result?.registered && coveredCount === result.registered) {
+      if (result?.fee_exempt && result?.registered) {
+        // Fee-exempt rider: nothing to pay, so no amount in the message.
+        message = t('events.registeredOnStartList', { count: result.registered });
+      } else if (result?.registered && coveredCount === result.registered) {
         // Every new entry is included in the horse's already-paid higher tour.
         message = t('events.registeredAllCovered', { count: coveredCount });
       } else if (result?.registered) {
