@@ -538,11 +538,14 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 0.45rem;
 }
 
 .showInfoBtn {
+  display: inline-block;
+  white-space: nowrap;
+  line-height: normal;
   border: 1px solid #ccc;
   border-radius: 6px;
   padding: 0.4rem 0.75rem;
@@ -558,6 +561,7 @@
 
 .removeHorseBtn {
   margin-left: auto;
+  white-space: nowrap;
   border: 1px solid #f1c0c0;
   border-radius: 6px;
   padding: 0.4rem 0.75rem;

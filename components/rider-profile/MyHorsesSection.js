@@ -327,9 +327,6 @@ function HorseCard({
         </div>
       )}
       <div className={classes.horseCardFooter}>
-        {horse.is_active === false && profileStatus === 'active' && (
-          <span className={classes.inactiveBadge}>{t('horses.inactive')}</span>
-        )}
         <button
           type="button"
           className={classes.showInfoBtn}
