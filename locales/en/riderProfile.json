@@ -184,7 +184,12 @@
       "bronze": "Bronze",
       "silver": "Silver",
       "gold": "Gold"
-    }
+    },
+    "addPhoto": "Add photo",
+    "photoPending": "Photo pending",
+    "photoRequestSent": "Photo request sent. The photo will appear after admin approval.",
+    "photoMustBeImage": "Please choose an image file.",
+    "couldNotSendPhoto": "Could not send the photo request"
   },
   "events": {
     "upcoming": "Upcoming events",

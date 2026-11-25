@@ -755,3 +755,17 @@
     grid-template-columns: 1fr;
   }
 }
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.photoBtnBusy {
+  opacity: 0.55;
+  pointer-events: none;
+}

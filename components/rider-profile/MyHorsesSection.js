@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { ApiRequestError } from '@/lib/api/api-error';
 import {
   createHorseClaimRequest,
+  createHorsePhotoRequest,
   createNewHorseClaimRequest,
   getMyHorses,
   searchMyHorses,
@@ -217,8 +218,17 @@ function ProfileStatusBadge({ status, requestId }) {
   return null;
 }
 
-function HorseCard({ horse, onRemove, removing, showInfo, onToggleInfo }) {
+function HorseCard({
+  horse,
+  onRemove,
+  removing,
+  showInfo,
+  onToggleInfo,
+  onAddPhoto,
+  sendingPhoto,
+}) {
   const { t } = useTranslation('riderProfile');
+  const photoInputId = useId();
   const imageUrl = horse.images?.[0] || horse.image;
   const profileStatus = resolveProfileStatus(horse);
   const canRemove = profileStatus === 'active' && horse.id != null;
@@ -328,6 +338,36 @@ function HorseCard({ horse, onRemove, removing, showInfo, onToggleInfo }) {
         >
           {showInfo ? t('horses.hideInfo') : t('horses.showInfo')}
         </button>
+        {canRemove &&
+          (horse.pending_photo_request_id != null ? (
+            <span className={classes.statusBadgePendingAdd}>
+              {t('horses.photoPending')} #{horse.pending_photo_request_id}
+            </span>
+          ) : (
+            <>
+              <input
+                id={photoInputId}
+                type="file"
+                accept="image/*"
+                className={classes.visuallyHidden}
+                disabled={sendingPhoto}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = '';
+                  if (file) onAddPhoto?.(horse, file);
+                }}
+              />
+              <label
+                htmlFor={photoInputId}
+                className={`${classes.showInfoBtn} ${
+                  sendingPhoto ? classes.photoBtnBusy : ''
+                }`}
+                aria-disabled={sendingPhoto}
+              >
+                {sendingPhoto ? t('horses.sending') : t('horses.addPhoto')}
+              </label>
+            </>
+          ))}
         {canRemove && (
           <button
             type="button"
@@ -1251,6 +1291,9 @@ export default function MyHorsesSection() {
   const [showComposer, setShowComposer] = useState(false);
   const [removingId, setRemovingId] = useState(null);
   const [removeError, setRemoveError] = useState('');
+  const [photoHorseId, setPhotoHorseId] = useState(null);
+  const [photoMessage, setPhotoMessage] = useState('');
+  const [photoError, setPhotoError] = useState('');
   const [openHorseKeys, setOpenHorseKeys] = useState(() => new Set());
   const horseKeys = horses.map((horse, index) => horseCardKey(horse, index));
   const allInfoOpen =
@@ -1307,6 +1350,26 @@ export default function MyHorsesSection() {
     }
   };
 
+  const handleAddPhoto = async (horse, file) => {
+    if (!horse?.id || photoHorseId != null) return;
+    setPhotoMessage('');
+    setPhotoError('');
+    if (!file.type?.startsWith('image/')) {
+      setPhotoError(t('horses.photoMustBeImage'));
+      return;
+    }
+    try {
+      setPhotoHorseId(horse.id);
+      await createHorsePhotoRequest({ horseId: horse.id, image: file });
+      setPhotoMessage(t('horses.photoRequestSent'));
+      await loadHorses();
+    } catch (err) {
+      setPhotoError(formatApiError(err, t, 'horses.couldNotSendPhoto'));
+    } finally {
+      setPhotoHorseId(null);
+    }
+  };
+
   return (
     <section className={classes.horsesSection}>
       <div className={classes.sectionHeader}>
@@ -1342,6 +1405,8 @@ export default function MyHorsesSection() {
 
       {!loading && loadError && <p className={classes.error}>{loadError}</p>}
       {removeError && <p className={classes.error}>{removeError}</p>}
+      {photoError && <p className={classes.error}>{photoError}</p>}
+      {photoMessage && <p className={classes.success}>{photoMessage}</p>}
 
       {!loading && !loadError && count === 0 && !showComposer && (
         <div className={classes.empty}>
@@ -1359,6 +1424,8 @@ export default function MyHorsesSection() {
                 horse={horse}
                 onRemove={handleRemoveHorse}
                 removing={removingId === horse.id}
+                onAddPhoto={handleAddPhoto}
+                sendingPhoto={horse.id != null && photoHorseId === horse.id}
                 showInfo={openHorseKeys.has(cardKey)}
                 onToggleInfo={() =>
                   setOpenHorseKeys((prev) => {
